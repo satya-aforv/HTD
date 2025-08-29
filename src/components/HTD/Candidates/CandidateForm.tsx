@@ -51,10 +51,17 @@ interface Document {
 interface CandidateFormData {
   name: string;
   email: string;
-  phone: string;
+  contactNumber: string;
+  alternateContactNumber?: string;
   dateOfBirth: string;
   gender: string;
-  address: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    pincode: string;
+    country: string;
+  };
   city: string;
   state: string;
   pincode: string;
@@ -69,19 +76,27 @@ interface CandidateFormData {
   skills: Skill[];
   documents: Document[];
   notes: string;
+  candidateId?: string;
 }
 
 const initialFormData: CandidateFormData = {
   name: "",
   email: "",
-  phone: "",
+  contactNumber: "",
+  alternateContactNumber: "",
   dateOfBirth: "",
   gender: "",
-  address: "",
+  address: {
+    street: "",
+    city: "",
+    state: "",
+    pincode: "",
+    country: "India",
+  },
   city: "",
   state: "",
   pincode: "",
-  status: "ACTIVE",
+  status: "HIRED",
   highestQualification: "",
   previousSalary: 0,
   expectedSalary: 0,
@@ -92,6 +107,7 @@ const initialFormData: CandidateFormData = {
   skills: [],
   documents: [],
   notes: "",
+  candidateId: "",
 };
 
 const CandidateForm: React.FC = () => {
@@ -103,10 +119,6 @@ const CandidateForm: React.FC = () => {
   const [success, setSuccess] = useState("");
   const [activeTab, setActiveTab] = useState("personal");
   const [selectedState, setSelectedState] = useState<{
-    value: string;
-    label: string;
-  } | null>(null);
-  const [selectedCity, setSelectedCity] = useState<{
     value: string;
     label: string;
   } | null>(null);
@@ -199,10 +211,23 @@ const CandidateForm: React.FC = () => {
     >
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+
+    // Handle nested address fields
+    if (name.startsWith("address.")) {
+      const addressField = name.split(".")[1];
+      setFormData((prev) => ({
+        ...prev,
+        address: {
+          ...prev.address,
+          [addressField]: value,
+        },
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -626,341 +651,440 @@ const CandidateForm: React.FC = () => {
         >
           {/* Personal Information */}
           {activeTab === "personal" && (
-            <motion.div
-              className="space-y-8"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.4 }}
-            >
-              {/* Basic Information Section */}
-              <div className="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-lg">
-                <h4 className="text-lg font-semibold text-blue-800 mb-4 flex items-center">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                  Basic Information
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.4, delay: 0.3 }}
-                  >
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Full Name *
-                    </label>
-                    <motion.input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
-                      whileFocus={{
-                        scale: 1.02,
-                        boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
-                      }}
-                    />
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.4, delay: 0.4 }}
-                  >
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email *
-                    </label>
-                    <motion.input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
-                      whileFocus={{
-                        scale: 1.02,
-                        boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
-                      }}
-                    />
-                  </motion.div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Phone Number *
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      required
-                      className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Date of Birth
-                    </label>
-                    <input
-                      type="date"
-                      name="dateOfBirth"
-                      value={formData.dateOfBirth}
-                      onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Gender
-                    </label>
-                    <select
-                      name="gender"
-                      value={formData.gender}
-                      onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            <div className="space-y-8">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.4 }}
+              >
+                {/* Basic Information Section */}
+                <div className="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-lg">
+                  <h4 className="text-lg font-semibold text-blue-800 mb-4 flex items-center">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                    Basic Information
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.4, delay: 0.3 }}
                     >
-                      <option value="">Select Gender</option>
-                      <option value="MALE">Male</option>
-                      <option value="FEMALE">Female</option>
-                      <option value="OTHER">Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Status
-                    </label>
-                    <select
-                      name="status"
-                      value={formData.status}
-                      onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Full Name *
+                      </label>
+                      <motion.input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                        className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                        whileFocus={{
+                          scale: 1.02,
+                          boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
+                        }}
+                      />
+                    </motion.div>
+                    <motion.div
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.4, delay: 0.4 }}
                     >
-                      <option value="ACTIVE">Active</option>
-                      <option value="IN_TRAINING">In Training</option>
-                      <option value="DEPLOYED">Deployed</option>
-                      <option value="ON_HOLD">On Hold</option>
-                      <option value="TERMINATED">Terminated</option>
-                    </select>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email *
+                      </label>
+                      <motion.input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                        whileFocus={{
+                          scale: 1.02,
+                          boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
+                        }}
+                      />
+                    </motion.div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Phone Number *
+                      </label>
+                      <input
+                        type="tel"
+                        name="contactNumber"
+                        value={formData.contactNumber}
+                        onChange={handleChange}
+                        required
+                        className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Alternate Phone Number
+                      </label>
+                      <input
+                        type="tel"
+                        name="alternateContactNumber"
+                        value={formData.alternateContactNumber || ""}
+                        onChange={handleChange}
+                        className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Date of Birth
+                      </label>
+                      <input
+                        type="date"
+                        name="dateOfBirth"
+                        value={formData.dateOfBirth}
+                        onChange={handleChange}
+                        className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Gender
+                      </label>
+                      <select
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleChange}
+                        className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select Gender</option>
+                        <option value="MALE">Male</option>
+                        <option value="FEMALE">Female</option>
+                        <option value="OTHER">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Status
+                      </label>
+                      <select
+                        name="status"
+                        value={formData.status}
+                        onChange={handleChange}
+                        className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="HIRED">Hired</option>
+                        <option value="IN_TRAINING">In Training</option>
+                        <option value="DEPLOYED">Deployed</option>
+                        <option value="INACTIVE">Inactive</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Highest Qualification *
+                      </label>
+                      <select
+                        name="highestQualification"
+                        value={formData.highestQualification}
+                        onChange={handleChange}
+                        required
+                        className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select Highest Qualification</option>
+                        <optgroup label="School Education">
+                          <option value="10th/SSC/SSLC">10th/SSC/SSLC</option>
+                          <option value="12th/HSC/Intermediate">
+                            12th/HSC/Intermediate
+                          </option>
+                        </optgroup>
+                        <optgroup label="Undergraduate">
+                          <option value="B.Tech/B.E.">B.Tech/B.E.</option>
+                          <option value="B.Sc">B.Sc</option>
+                          <option value="B.Com">B.Com</option>
+                          <option value="B.A">B.A</option>
+                          <option value="BBA">BBA</option>
+                          <option value="BCA">BCA</option>
+                        </optgroup>
+                        <optgroup label="Postgraduate">
+                          <option value="M.Tech/M.E.">M.Tech/M.E.</option>
+                          <option value="M.Sc">M.Sc</option>
+                          <option value="M.Com">M.Com</option>
+                          <option value="M.A">M.A</option>
+                          <option value="MBA">MBA</option>
+                          <option value="MCA">MCA</option>
+                        </optgroup>
+                        <optgroup label="Doctoral">
+                          <option value="Ph.D">Ph.D</option>
+                        </optgroup>
+                        <optgroup label="Diplomas">
+                          <option value="Diploma">Diploma</option>
+                          <option value="Advanced Diploma">
+                            Advanced Diploma
+                          </option>
+                        </optgroup>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Previous Salary (₹)
+                      </label>
+                      <input
+                        type="number"
+                        name="previousSalary"
+                        value={formData.previousSalary}
+                        onChange={handleChange}
+                        className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Expected Salary (₹)
+                      </label>
+                      <input
+                        type="number"
+                        name="expectedSalary"
+                        value={formData.expectedSalary}
+                        onChange={handleChange}
+                        className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Address Information Section */}
-              <div className="bg-orange-50 border-l-4 border-orange-400 p-6 rounded-lg">
-                <h4 className="text-lg font-semibold text-orange-800 mb-4 flex items-center">
-                  <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
-                  Address Information
-                </h4>
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Address
-                  </label>
-                  <textarea
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    rows={3}
-                    className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <div className="bg-orange-50 border-l-4 border-orange-400 p-6 rounded-lg">
+                  <h4 className="text-lg font-semibold text-orange-800 mb-4 flex items-center">
+                    <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
+                    Address Information
+                  </h4>
+                  <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      State *
+                      Address
                     </label>
-                    <Autocomplete
-                      options={states}
-                      value={formData.state}
-                      onChange={(value) => {
-                        const state = states.find((s) => s.value === value);
-                        setSelectedState(state || null);
-                        setFormData((prev) => ({
-                          ...prev,
-                          state: value,
-                          city: "",
-                          pincode: "",
-                        }));
-                        if (state) {
-                          loadCitiesForState(value);
+                    <textarea
+                      name="address.street"
+                      value={formData.address.street}
+                      onChange={handleChange}
+                      rows={3}
+                      className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        State *
+                      </label>
+                      <Autocomplete
+                        options={states}
+                        value={formData.state}
+                        onChange={(value) => {
+                          const state = states.find((s) => s.value === value);
+                          setSelectedState(state || null);
+                          setFormData((prev) => ({
+                            ...prev,
+                            state: value,
+                            city: "",
+                            pincode: "",
+                          }));
+                          if (state) {
+                            loadCitiesForState(value);
+                          }
+                        }}
+                        placeholder="Search and select state..."
+                        className="w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        City *
+                      </label>
+                      <Autocomplete
+                        options={cities}
+                        value={formData.city}
+                        onChange={(value) => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            city: value,
+                            address: {
+                              ...prev.address,
+                              city: value,
+                            },
+                            pincode: "",
+                          }));
+                        }}
+                        placeholder={
+                          selectedState
+                            ? "Search and select city..."
+                            : "Select state first"
                         }
-                      }}
-                      placeholder="Search and select state..."
-                      className="w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      City *
-                    </label>
-                    <Autocomplete
-                      options={cities}
-                      value={formData.city}
-                      onChange={(value) => {
-                        const city = cities.find((c) => c.value === value);
-                        setSelectedCity(city || null);
-                        setFormData((prev) => ({
-                          ...prev,
-                          city: value,
-                          pincode: "",
-                        }));
-                      }}
-                      placeholder={
-                        selectedState
-                          ? "Search and select city..."
-                          : "Select state first"
-                      }
-                      disabled={!selectedState}
-                      className="w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Pincode *
-                    </label>
-                    <Autocomplete
-                      options={[]}
-                      value={formData.pincode}
-                      onChange={(value) => {
-                        setFormData((prev) => ({ ...prev, pincode: value }));
-                        if (isValidPincode(value)) {
-                          getLocationByPincode(value).then((locationData) => {
-                            if (locationData) {
-                              const state = states.find(
-                                (s) => s.label === locationData.state
-                              );
-                              const city = cities.find(
-                                (c) => c.label === locationData.city
-                              );
-                              if (state) {
-                                setSelectedState(state);
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  state: state.value,
-                                }));
-                                loadCitiesForState(state.value);
+                        disabled={!selectedState}
+                        className="w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Pincode *
+                      </label>
+                      <Autocomplete
+                        options={[]}
+                        value={formData.pincode}
+                        onChange={(value) => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            pincode: value,
+                            address: {
+                              ...prev.address,
+                              pincode: value,
+                            },
+                          }));
+                          if (isValidPincode(value)) {
+                            getLocationByPincode(value).then((locationData) => {
+                              if (locationData) {
+                                const state = states.find(
+                                  (s) => s.label === locationData.state
+                                );
+                                const city = cities.find(
+                                  (c) => c.label === locationData.city
+                                );
+                                if (state) {
+                                  setSelectedState(state);
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    state: state.value,
+                                    address: {
+                                      ...prev.address,
+                                      state: state.value,
+                                    },
+                                  }));
+                                  loadCitiesForState(state.value);
+                                }
+                                if (city) {
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    city: city.value,
+                                    address: {
+                                      ...prev.address,
+                                      city: city.value,
+                                    },
+                                  }));
+                                }
                               }
-                              if (city) {
-                                setSelectedCity(city);
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  city: city.value,
-                                }));
-                              }
-                            }
-                          });
-                        }
-                      }}
-                      placeholder="Enter 6-digit pincode..."
-                      className="w-full"
-                      onInputChange={(inputValue) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          pincode: inputValue,
-                        }));
-                      }}
-                    />
+                            });
+                          }
+                        }}
+                        placeholder="Enter 6-digit pincode..."
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Highest Qualification *
+                      </label>
+                      <select
+                        name="highestQualification"
+                        value={formData.highestQualification}
+                        onChange={handleChange}
+                        required
+                        className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select Highest Qualification</option>
+                        <optgroup label="School Education">
+                          <option value="10th/SSC/SSLC">10th/SSC/SSLC</option>
+                          <option value="12th/HSC/Intermediate">
+                            12th/HSC/Intermediate
+                          </option>
+                        </optgroup>
+                        <optgroup label="Undergraduate">
+                          <option value="B.Tech/B.E.">B.Tech/B.E.</option>
+                          <option value="B.Sc">B.Sc</option>
+                          <option value="B.Com">B.Com</option>
+                          <option value="B.A">B.A</option>
+                          <option value="BBA">BBA</option>
+                          <option value="BCA">BCA</option>
+                        </optgroup>
+                        <optgroup label="Postgraduate">
+                          <option value="M.Tech/M.E.">M.Tech/M.E.</option>
+                          <option value="M.Sc">M.Sc</option>
+                          <option value="M.Com">M.Com</option>
+                          <option value="M.A">M.A</option>
+                          <option value="MBA">MBA</option>
+                          <option value="MCA">MCA</option>
+                        </optgroup>
+                        <optgroup label="Doctoral">
+                          <option value="Ph.D">Ph.D</option>
+                        </optgroup>
+                        <optgroup label="Diplomas">
+                          <option value="Diploma">Diploma</option>
+                          <option value="Advanced Diploma">
+                            Advanced Diploma
+                          </option>
+                        </optgroup>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Previous Salary (₹)
+                      </label>
+                      <input
+                        type="number"
+                        name="previousSalary"
+                        value={formData.previousSalary}
+                        onChange={handleChange}
+                        className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Expected Salary (₹)
+                      </label>
+                      <input
+                        type="number"
+                        name="expectedSalary"
+                        value={formData.expectedSalary}
+                        onChange={handleChange}
+                        className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Additional Notes Section */}
+                <div className="bg-gray-50 border-l-4 border-gray-400 p-6 rounded-lg">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <span className="w-2 h-2 bg-gray-500 rounded-full mr-2"></span>
+                    Additional Notes
+                  </h4>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Highest Qualification *
+                      Notes
                     </label>
-                    <select
-                      name="highestQualification"
-                      value={formData.highestQualification}
+                    <textarea
+                      name="notes"
+                      value={formData.notes}
                       onChange={handleChange}
-                      required
+                      rows={4}
                       className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">Select Highest Qualification</option>
-                      <optgroup label="School Education">
-                        <option value="10th/SSC/SSLC">10th/SSC/SSLC</option>
-                        <option value="12th/HSC/Intermediate">
-                          12th/HSC/Intermediate
-                        </option>
-                      </optgroup>
-                      <optgroup label="Undergraduate">
-                        <option value="B.Tech/B.E.">B.Tech/B.E.</option>
-                        <option value="B.Sc">B.Sc</option>
-                        <option value="B.Com">B.Com</option>
-                        <option value="B.A">B.A</option>
-                        <option value="BBA">BBA</option>
-                        <option value="BCA">BCA</option>
-                      </optgroup>
-                      <optgroup label="Postgraduate">
-                        <option value="M.Tech/M.E.">M.Tech/M.E.</option>
-                        <option value="M.Sc">M.Sc</option>
-                        <option value="M.Com">M.Com</option>
-                        <option value="M.A">M.A</option>
-                        <option value="MBA">MBA</option>
-                        <option value="MCA">MCA</option>
-                      </optgroup>
-                      <optgroup label="Doctoral">
-                        <option value="Ph.D">Ph.D</option>
-                      </optgroup>
-                      <optgroup label="Diplomas">
-                        <option value="Diploma">Diploma</option>
-                        <option value="Advanced Diploma">
-                          Advanced Diploma
-                        </option>
-                      </optgroup>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Previous Salary (₹)
-                    </label>
-                    <input
-                      type="number"
-                      name="previousSalary"
-                      value={formData.previousSalary}
-                      onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Expected Salary (₹)
-                    </label>
-                    <input
-                      type="number"
-                      name="expectedSalary"
-                      value={formData.expectedSalary}
-                      onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Additional notes about the candidate..."
                     />
                   </div>
                 </div>
-              </div>
-
-              {/* Additional Notes Section */}
-              <div className="bg-gray-50 border-l-4 border-gray-400 p-6 rounded-lg">
-                <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                  <span className="w-2 h-2 bg-gray-500 rounded-full mr-2"></span>
-                  Additional Notes
-                </h4>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Notes
-                  </label>
-                  <textarea
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleChange}
-                    rows={4}
-                    className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Additional notes about the candidate..."
-                  />
-                </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
           )}
 
           {/* Education */}

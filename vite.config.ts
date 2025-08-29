@@ -18,18 +18,18 @@ export default defineConfig({
     proxy: {
       // Handle /api/htd paths
       "/api/htd": {
-        target: "http://localhost:5001/htd",
+        target: "https://htd-backend.onrender.com/htd",
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/api\/htd/, '')
+        rewrite: (path) => path.replace(/^\/api\/htd/, ""),
       },
       // Handle all other /api paths
       "/api": {
-        target: "http://localhost:5001",
+        target: "https://htd-backend.onrender.com",
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/api/, '')
-      }
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
     },
   },
 });

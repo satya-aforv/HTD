@@ -6,7 +6,8 @@ import toast from "react-hot-toast";
 // Format the API base URL properly
 const getApiBaseUrl = () => {
   // Get base URL from environment or use default
-  const envUrl = import.meta.env.VITE_API_URL || "http://localhost:5001";
+  const envUrl =
+    import.meta.env.VITE_API_URL || "https://htd-backend.onrender.com";
   // Remove any trailing slashes
   return envUrl.replace(/\/+$/, "");
 };

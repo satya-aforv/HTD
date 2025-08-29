@@ -318,6 +318,13 @@ const CandidateForm: React.FC = () => {
     setFormData((prev) => ({ ...prev, education: updatedEducation }));
   };
 
+  // Helper function to get already selected degrees (excluding current index)
+  const getSelectedDegrees = (currentIndex: number) => {
+    return formData.education
+      .map((edu, index) => index !== currentIndex ? edu.degree : null)
+      .filter(degree => degree && degree !== "");
+  };
+
   // Experience handlers
   const addExperience = (type: "IT" | "NON_IT") => {
     const newExperience = {
@@ -947,35 +954,206 @@ const CandidateForm: React.FC = () => {
                         >
                           <option value="">Select Degree/Certificate</option>
                           <optgroup label="School Education">
-                            <option value="10th/SSC/SSLC">10th/SSC/SSLC</option>
-                            <option value="12th/HSC/Intermediate">12th/HSC/Intermediate</option>
+                            <option 
+                              value="10th/SSC/SSLC" 
+                              disabled={getSelectedDegrees(index).includes("10th/SSC/SSLC")}
+                              style={{ 
+                                color: getSelectedDegrees(index).includes("10th/SSC/SSLC") ? '#9CA3AF' : 'inherit',
+                                backgroundColor: getSelectedDegrees(index).includes("10th/SSC/SSLC") ? '#F3F4F6' : 'inherit'
+                              }}
+                            >
+                              10th/SSC/SSLC {getSelectedDegrees(index).includes("10th/SSC/SSLC") ? '(Already Added)' : ''}
+                            </option>
+                            <option 
+                              value="12th/HSC/Intermediate" 
+                              disabled={getSelectedDegrees(index).includes("12th/HSC/Intermediate")}
+                              style={{ 
+                                color: getSelectedDegrees(index).includes("12th/HSC/Intermediate") ? '#9CA3AF' : 'inherit',
+                                backgroundColor: getSelectedDegrees(index).includes("12th/HSC/Intermediate") ? '#F3F4F6' : 'inherit'
+                              }}
+                            >
+                              12th/HSC/Intermediate {getSelectedDegrees(index).includes("12th/HSC/Intermediate") ? '(Already Added)' : ''}
+                            </option>
                           </optgroup>
                           <optgroup label="Undergraduate">
-                            <option value="B.Tech/B.E.">B.Tech/B.E.</option>
-                            <option value="B.Sc">B.Sc</option>
-                            <option value="B.Com">B.Com</option>
-                            <option value="B.A">B.A</option>
-                            <option value="BBA">BBA</option>
-                            <option value="BCA">BCA</option>
+                            <option 
+                              value="B.Tech/B.E." 
+                              disabled={getSelectedDegrees(index).includes("B.Tech/B.E.")}
+                              style={{ 
+                                color: getSelectedDegrees(index).includes("B.Tech/B.E.") ? '#9CA3AF' : 'inherit',
+                                backgroundColor: getSelectedDegrees(index).includes("B.Tech/B.E.") ? '#F3F4F6' : 'inherit'
+                              }}
+                            >
+                              B.Tech/B.E. {getSelectedDegrees(index).includes("B.Tech/B.E.") ? '(Already Added)' : ''}
+                            </option>
+                            <option 
+                              value="B.Sc" 
+                              disabled={getSelectedDegrees(index).includes("B.Sc")}
+                              style={{ 
+                                color: getSelectedDegrees(index).includes("B.Sc") ? '#9CA3AF' : 'inherit',
+                                backgroundColor: getSelectedDegrees(index).includes("B.Sc") ? '#F3F4F6' : 'inherit'
+                              }}
+                            >
+                              B.Sc {getSelectedDegrees(index).includes("B.Sc") ? '(Already Added)' : ''}
+                            </option>
+                            <option 
+                              value="B.Com" 
+                              disabled={getSelectedDegrees(index).includes("B.Com")}
+                              style={{ 
+                                color: getSelectedDegrees(index).includes("B.Com") ? '#9CA3AF' : 'inherit',
+                                backgroundColor: getSelectedDegrees(index).includes("B.Com") ? '#F3F4F6' : 'inherit'
+                              }}
+                            >
+                              B.Com {getSelectedDegrees(index).includes("B.Com") ? '(Already Added)' : ''}
+                            </option>
+                            <option 
+                              value="B.A" 
+                              disabled={getSelectedDegrees(index).includes("B.A")}
+                              style={{ 
+                                color: getSelectedDegrees(index).includes("B.A") ? '#9CA3AF' : 'inherit',
+                                backgroundColor: getSelectedDegrees(index).includes("B.A") ? '#F3F4F6' : 'inherit'
+                              }}
+                            >
+                              B.A {getSelectedDegrees(index).includes("B.A") ? '(Already Added)' : ''}
+                            </option>
+                            <option 
+                              value="BBA" 
+                              disabled={getSelectedDegrees(index).includes("BBA")}
+                              style={{ 
+                                color: getSelectedDegrees(index).includes("BBA") ? '#9CA3AF' : 'inherit',
+                                backgroundColor: getSelectedDegrees(index).includes("BBA") ? '#F3F4F6' : 'inherit'
+                              }}
+                            >
+                              BBA {getSelectedDegrees(index).includes("BBA") ? '(Already Added)' : ''}
+                            </option>
+                            <option 
+                              value="BCA" 
+                              disabled={getSelectedDegrees(index).includes("BCA")}
+                              style={{ 
+                                color: getSelectedDegrees(index).includes("BCA") ? '#9CA3AF' : 'inherit',
+                                backgroundColor: getSelectedDegrees(index).includes("BCA") ? '#F3F4F6' : 'inherit'
+                              }}
+                            >
+                              BCA {getSelectedDegrees(index).includes("BCA") ? '(Already Added)' : ''}
+                            </option>
                           </optgroup>
                           <optgroup label="Postgraduate">
-                            <option value="M.Tech/M.E.">M.Tech/M.E.</option>
-                            <option value="M.Sc">M.Sc</option>
-                            <option value="M.Com">M.Com</option>
-                            <option value="M.A">M.A</option>
-                            <option value="MBA">MBA</option>
-                            <option value="MCA">MCA</option>
+                            <option 
+                              value="M.Tech/M.E." 
+                              disabled={getSelectedDegrees(index).includes("M.Tech/M.E.")}
+                              style={{ 
+                                color: getSelectedDegrees(index).includes("M.Tech/M.E.") ? '#9CA3AF' : 'inherit',
+                                backgroundColor: getSelectedDegrees(index).includes("M.Tech/M.E.") ? '#F3F4F6' : 'inherit'
+                              }}
+                            >
+                              M.Tech/M.E. {getSelectedDegrees(index).includes("M.Tech/M.E.") ? '(Already Added)' : ''}
+                            </option>
+                            <option 
+                              value="M.Sc" 
+                              disabled={getSelectedDegrees(index).includes("M.Sc")}
+                              style={{ 
+                                color: getSelectedDegrees(index).includes("M.Sc") ? '#9CA3AF' : 'inherit',
+                                backgroundColor: getSelectedDegrees(index).includes("M.Sc") ? '#F3F4F6' : 'inherit'
+                              }}
+                            >
+                              M.Sc {getSelectedDegrees(index).includes("M.Sc") ? '(Already Added)' : ''}
+                            </option>
+                            <option 
+                              value="M.Com" 
+                              disabled={getSelectedDegrees(index).includes("M.Com")}
+                              style={{ 
+                                color: getSelectedDegrees(index).includes("M.Com") ? '#9CA3AF' : 'inherit',
+                                backgroundColor: getSelectedDegrees(index).includes("M.Com") ? '#F3F4F6' : 'inherit'
+                              }}
+                            >
+                              M.Com {getSelectedDegrees(index).includes("M.Com") ? '(Already Added)' : ''}
+                            </option>
+                            <option 
+                              value="M.A" 
+                              disabled={getSelectedDegrees(index).includes("M.A")}
+                              style={{ 
+                                color: getSelectedDegrees(index).includes("M.A") ? '#9CA3AF' : 'inherit',
+                                backgroundColor: getSelectedDegrees(index).includes("M.A") ? '#F3F4F6' : 'inherit'
+                              }}
+                            >
+                              M.A {getSelectedDegrees(index).includes("M.A") ? '(Already Added)' : ''}
+                            </option>
+                            <option 
+                              value="MBA" 
+                              disabled={getSelectedDegrees(index).includes("MBA")}
+                              style={{ 
+                                color: getSelectedDegrees(index).includes("MBA") ? '#9CA3AF' : 'inherit',
+                                backgroundColor: getSelectedDegrees(index).includes("MBA") ? '#F3F4F6' : 'inherit'
+                              }}
+                            >
+                              MBA {getSelectedDegrees(index).includes("MBA") ? '(Already Added)' : ''}
+                            </option>
+                            <option 
+                              value="MCA" 
+                              disabled={getSelectedDegrees(index).includes("MCA")}
+                              style={{ 
+                                color: getSelectedDegrees(index).includes("MCA") ? '#9CA3AF' : 'inherit',
+                                backgroundColor: getSelectedDegrees(index).includes("MCA") ? '#F3F4F6' : 'inherit'
+                              }}
+                            >
+                              MCA {getSelectedDegrees(index).includes("MCA") ? '(Already Added)' : ''}
+                            </option>
                           </optgroup>
                           <optgroup label="Doctoral">
-                            <option value="Ph.D">Ph.D</option>
+                            <option 
+                              value="Ph.D" 
+                              disabled={getSelectedDegrees(index).includes("Ph.D")}
+                              style={{ 
+                                color: getSelectedDegrees(index).includes("Ph.D") ? '#9CA3AF' : 'inherit',
+                                backgroundColor: getSelectedDegrees(index).includes("Ph.D") ? '#F3F4F6' : 'inherit'
+                              }}
+                            >
+                              Ph.D {getSelectedDegrees(index).includes("Ph.D") ? '(Already Added)' : ''}
+                            </option>
                           </optgroup>
                           <optgroup label="Diplomas">
-                            <option value="Diploma">Diploma</option>
-                            <option value="Advanced Diploma">Advanced Diploma</option>
+                            <option 
+                              value="Diploma" 
+                              disabled={getSelectedDegrees(index).includes("Diploma")}
+                              style={{ 
+                                color: getSelectedDegrees(index).includes("Diploma") ? '#9CA3AF' : 'inherit',
+                                backgroundColor: getSelectedDegrees(index).includes("Diploma") ? '#F3F4F6' : 'inherit'
+                              }}
+                            >
+                              Diploma {getSelectedDegrees(index).includes("Diploma") ? '(Already Added)' : ''}
+                            </option>
+                            <option 
+                              value="Advanced Diploma" 
+                              disabled={getSelectedDegrees(index).includes("Advanced Diploma")}
+                              style={{ 
+                                color: getSelectedDegrees(index).includes("Advanced Diploma") ? '#9CA3AF' : 'inherit',
+                                backgroundColor: getSelectedDegrees(index).includes("Advanced Diploma") ? '#F3F4F6' : 'inherit'
+                              }}
+                            >
+                              Advanced Diploma {getSelectedDegrees(index).includes("Advanced Diploma") ? '(Already Added)' : ''}
+                            </option>
                           </optgroup>
                           <optgroup label="Certifications">
-                            <option value="Professional Certificate">Professional Certificate</option>
-                            <option value="Industry Certification">Industry Certification</option>
+                            <option 
+                              value="Professional Certificate" 
+                              disabled={getSelectedDegrees(index).includes("Professional Certificate")}
+                              style={{ 
+                                color: getSelectedDegrees(index).includes("Professional Certificate") ? '#9CA3AF' : 'inherit',
+                                backgroundColor: getSelectedDegrees(index).includes("Professional Certificate") ? '#F3F4F6' : 'inherit'
+                              }}
+                            >
+                              Professional Certificate {getSelectedDegrees(index).includes("Professional Certificate") ? '(Already Added)' : ''}
+                            </option>
+                            <option 
+                              value="Industry Certification" 
+                              disabled={getSelectedDegrees(index).includes("Industry Certification")}
+                              style={{ 
+                                color: getSelectedDegrees(index).includes("Industry Certification") ? '#9CA3AF' : 'inherit',
+                                backgroundColor: getSelectedDegrees(index).includes("Industry Certification") ? '#F3F4F6' : 'inherit'
+                              }}
+                            >
+                              Industry Certification {getSelectedDegrees(index).includes("Industry Certification") ? '(Already Added)' : ''}
+                            </option>
                           </optgroup>
                         </select>
                       </div>

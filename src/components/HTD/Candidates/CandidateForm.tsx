@@ -625,13 +625,19 @@ const CandidateForm: React.FC = () => {
           {/* Personal Information */}
           {activeTab === "personal" && (
             <motion.div 
-              className="space-y-6"
+              className="space-y-8"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.4 }}
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Basic Information Section */}
+              <div className="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-lg">
+                <h4 className="text-lg font-semibold text-blue-800 mb-4 flex items-center">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                  Basic Information
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -732,22 +738,29 @@ const CandidateForm: React.FC = () => {
                     <option value="TERMINATED">Terminated</option>
                   </select>
                 </div>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Address
-                </label>
-                <textarea
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  rows={3}
-                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+              {/* Address Information Section */}
+              <div className="bg-orange-50 border-l-4 border-orange-400 p-6 rounded-lg">
+                <h4 className="text-lg font-semibold text-orange-800 mb-4 flex items-center">
+                  <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
+                  Address Information
+                </h4>
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Address
+                  </label>
+                  <textarea
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    rows={3}
+                    className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     State *
@@ -886,20 +899,28 @@ const CandidateForm: React.FC = () => {
                     className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Notes
-                </label>
-                <textarea
-                  name="notes"
-                  value={formData.notes}
-                  onChange={handleChange}
-                  rows={4}
-                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Additional notes about the candidate..."
-                />
+              {/* Additional Notes Section */}
+              <div className="bg-gray-50 border-l-4 border-gray-400 p-6 rounded-lg">
+                <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <span className="w-2 h-2 bg-gray-500 rounded-full mr-2"></span>
+                  Additional Notes
+                </h4>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Notes
+                  </label>
+                  <textarea
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleChange}
+                    rows={4}
+                    className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Additional notes about the candidate..."
+                  />
+                </div>
               </div>
             </motion.div>
           )}

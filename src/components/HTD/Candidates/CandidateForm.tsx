@@ -102,8 +102,14 @@ const CandidateForm: React.FC = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [activeTab, setActiveTab] = useState("personal");
-  const [selectedState, setSelectedState] = useState<{value: string, label: string} | null>(null);
-  const [selectedCity, setSelectedCity] = useState<{value: string, label: string} | null>(null);
+  const [selectedState, setSelectedState] = useState<{
+    value: string;
+    label: string;
+  } | null>(null);
+  const [selectedCity, setSelectedCity] = useState<{
+    value: string;
+    label: string;
+  } | null>(null);
 
   // Location data hook
   const {
@@ -111,7 +117,7 @@ const CandidateForm: React.FC = () => {
     cities,
     loadCitiesForState,
     getLocationByPincode,
-    isValidPincode
+    isValidPincode,
   } = useLocationData();
   const [fileUploads, setFileUploads] = useState<{
     [key: string]: File | null;
@@ -244,24 +250,20 @@ const CandidateForm: React.FC = () => {
         formData.append("type", docType);
 
         try {
-          await api.post(
-            `/htd/candidates/${candidateId}/documents`,
-            formData,
-            {
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
-              onUploadProgress: (progressEvent) => {
-                const percentCompleted = Math.round(
-                  (progressEvent.loaded * 100) / (progressEvent.total || 100)
-                );
-                setUploadProgress((prev) => ({
-                  ...prev,
-                  [docType]: percentCompleted,
-                }));
-              },
-            }
-          );
+          await api.post(`/htd/candidates/${candidateId}/documents`, formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+            onUploadProgress: (progressEvent) => {
+              const percentCompleted = Math.round(
+                (progressEvent.loaded * 100) / (progressEvent.total || 100)
+              );
+              setUploadProgress((prev) => ({
+                ...prev,
+                [docType]: percentCompleted,
+              }));
+            },
+          });
         } catch (err) {
           console.error(`Error uploading ${docType}:`, err);
           setError((prev) =>
@@ -321,8 +323,8 @@ const CandidateForm: React.FC = () => {
   // Helper function to get already selected degrees (excluding current index)
   const getSelectedDegrees = (currentIndex: number) => {
     return formData.education
-      .map((edu, index) => index !== currentIndex ? edu.degree : null)
-      .filter(degree => degree && degree !== "");
+      .map((edu, index) => (index !== currentIndex ? edu.degree : null))
+      .filter((degree) => degree && degree !== "");
   };
 
   // Experience handlers
@@ -466,20 +468,20 @@ const CandidateForm: React.FC = () => {
   }
 
   return (
-    <motion.div 
+    <motion.div
       className="p-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
     >
       <FloatingParticles />
-      <motion.div 
+      <motion.div
         className="mb-6"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <motion.h1 
+        <motion.h1
           className="text-2xl font-semibold text-gray-800"
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
@@ -487,7 +489,7 @@ const CandidateForm: React.FC = () => {
         >
           {id ? "Edit Candidate" : "Add New Candidate"}
         </motion.h1>
-        <motion.p 
+        <motion.p
           className="text-gray-600 mt-1"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -500,7 +502,7 @@ const CandidateForm: React.FC = () => {
       </motion.div>
 
       {error && (
-        <motion.div 
+        <motion.div
           className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded"
           initial={{ opacity: 0, x: -20, scale: 0.95 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
@@ -512,7 +514,7 @@ const CandidateForm: React.FC = () => {
       )}
 
       {success && (
-        <motion.div 
+        <motion.div
           className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded"
           initial={{ opacity: 0, x: -20, scale: 0.95 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
@@ -523,14 +525,14 @@ const CandidateForm: React.FC = () => {
         </motion.div>
       )}
 
-      <motion.div 
+      <motion.div
         className="bg-white rounded-lg shadow-md overflow-hidden"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, delay: 0.5 }}
       >
         {/* Tabs */}
-        <motion.div 
+        <motion.div
           className="border-b border-gray-200"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -615,8 +617,8 @@ const CandidateForm: React.FC = () => {
           </nav>
         </motion.div>
 
-        <motion.form 
-          onSubmit={handleSubmit} 
+        <motion.form
+          onSubmit={handleSubmit}
           className="p-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -624,7 +626,7 @@ const CandidateForm: React.FC = () => {
         >
           {/* Personal Information */}
           {activeTab === "personal" && (
-            <motion.div 
+            <motion.div
               className="space-y-8"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -638,106 +640,112 @@ const CandidateForm: React.FC = () => {
                   Basic Information
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.4, delay: 0.3 }}
-                >
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Full Name *
-                  </label>
-                  <motion.input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
-                    whileFocus={{ scale: 1.02, boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)" }}
-                  />
-                </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.4, delay: 0.4 }}
-                >
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email *
-                  </label>
-                  <motion.input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
-                    whileFocus={{ scale: 1.02, boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)" }}
-                  />
-                </motion.div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone Number *
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    required
-                    className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Date of Birth
-                  </label>
-                  <input
-                    type="date"
-                    name="dateOfBirth"
-                    value={formData.dateOfBirth}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Gender
-                  </label>
-                  <select
-                    name="gender"
-                    value={formData.gender}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.4, delay: 0.3 }}
                   >
-                    <option value="">Select Gender</option>
-                    <option value="MALE">Male</option>
-                    <option value="FEMALE">Female</option>
-                    <option value="OTHER">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Status
-                  </label>
-                  <select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Full Name *
+                    </label>
+                    <motion.input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                      whileFocus={{
+                        scale: 1.02,
+                        boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
+                      }}
+                    />
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.4, delay: 0.4 }}
                   >
-                    <option value="ACTIVE">Active</option>
-                    <option value="IN_TRAINING">In Training</option>
-                    <option value="DEPLOYED">Deployed</option>
-                    <option value="ON_HOLD">On Hold</option>
-                    <option value="TERMINATED">Terminated</option>
-                  </select>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email *
+                    </label>
+                    <motion.input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                      whileFocus={{
+                        scale: 1.02,
+                        boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
+                      }}
+                    />
+                  </motion.div>
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone Number *
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      required
+                      className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Date of Birth
+                    </label>
+                    <input
+                      type="date"
+                      name="dateOfBirth"
+                      value={formData.dateOfBirth}
+                      onChange={handleChange}
+                      className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Gender
+                    </label>
+                    <select
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleChange}
+                      className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="MALE">Male</option>
+                      <option value="FEMALE">Female</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Status
+                    </label>
+                    <select
+                      name="status"
+                      value={formData.status}
+                      onChange={handleChange}
+                      className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="ACTIVE">Active</option>
+                      <option value="IN_TRAINING">In Training</option>
+                      <option value="DEPLOYED">Deployed</option>
+                      <option value="ON_HOLD">On Hold</option>
+                      <option value="TERMINATED">Terminated</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
@@ -761,144 +769,174 @@ const CandidateForm: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    State *
-                  </label>
-                  <Autocomplete
-                    options={states}
-                    value={formData.state}
-                    onChange={(value) => {
-                      const state = states.find(s => s.value === value);
-                      setSelectedState(state || null);
-                      setFormData(prev => ({ ...prev, state: value, city: '', pincode: '' }));
-                      if (state) {
-                        loadCitiesForState(value);
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      State *
+                    </label>
+                    <Autocomplete
+                      options={states}
+                      value={formData.state}
+                      onChange={(value) => {
+                        const state = states.find((s) => s.value === value);
+                        setSelectedState(state || null);
+                        setFormData((prev) => ({
+                          ...prev,
+                          state: value,
+                          city: "",
+                          pincode: "",
+                        }));
+                        if (state) {
+                          loadCitiesForState(value);
+                        }
+                      }}
+                      placeholder="Search and select state..."
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      City *
+                    </label>
+                    <Autocomplete
+                      options={cities}
+                      value={formData.city}
+                      onChange={(value) => {
+                        const city = cities.find((c) => c.value === value);
+                        setSelectedCity(city || null);
+                        setFormData((prev) => ({
+                          ...prev,
+                          city: value,
+                          pincode: "",
+                        }));
+                      }}
+                      placeholder={
+                        selectedState
+                          ? "Search and select city..."
+                          : "Select state first"
                       }
-                    }}
-                    placeholder="Search and select state..."
-                    className="w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    City *
-                  </label>
-                  <Autocomplete
-                    options={cities}
-                    value={formData.city}
-                    onChange={(value) => {
-                      const city = cities.find(c => c.value === value);
-                      setSelectedCity(city || null);
-                      setFormData(prev => ({ ...prev, city: value, pincode: '' }));
-                    }}
-                    placeholder={selectedState ? "Search and select city..." : "Select state first"}
-                    disabled={!selectedState}
-                    className="w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Pincode *
-                  </label>
-                  <Autocomplete
-                    options={[]}
-                    value={formData.pincode}
-                    onChange={(value) => {
-                      setFormData(prev => ({ ...prev, pincode: value }));
-                      if (isValidPincode(value)) {
-                        getLocationByPincode(value).then(locationData => {
-                          if (locationData) {
-                            const state = states.find(s => s.label === locationData.state);
-                            const city = cities.find(c => c.label === locationData.city);
-                            if (state) {
-                              setSelectedState(state);
-                              setFormData(prev => ({ ...prev, state: state.value }));
-                              loadCitiesForState(state.value);
+                      disabled={!selectedState}
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Pincode *
+                    </label>
+                    <Autocomplete
+                      options={[]}
+                      value={formData.pincode}
+                      onChange={(value) => {
+                        setFormData((prev) => ({ ...prev, pincode: value }));
+                        if (isValidPincode(value)) {
+                          getLocationByPincode(value).then((locationData) => {
+                            if (locationData) {
+                              const state = states.find(
+                                (s) => s.label === locationData.state
+                              );
+                              const city = cities.find(
+                                (c) => c.label === locationData.city
+                              );
+                              if (state) {
+                                setSelectedState(state);
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  state: state.value,
+                                }));
+                                loadCitiesForState(state.value);
+                              }
+                              if (city) {
+                                setSelectedCity(city);
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  city: city.value,
+                                }));
+                              }
                             }
-                            if (city) {
-                              setSelectedCity(city);
-                              setFormData(prev => ({ ...prev, city: city.value }));
-                            }
-                          }
-                        });
-                      }
-                    }}
-                    placeholder="Enter 6-digit pincode..."
-                    className="w-full"
-                    onInputChange={(inputValue) => {
-                      setFormData(prev => ({ ...prev, pincode: inputValue }));
-                    }}
-                  />
+                          });
+                        }
+                      }}
+                      placeholder="Enter 6-digit pincode..."
+                      className="w-full"
+                      onInputChange={(inputValue) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          pincode: inputValue,
+                        }));
+                      }}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Highest Qualification *
-                  </label>
-                  <select
-                    name="highestQualification"
-                    value={formData.highestQualification}
-                    onChange={handleChange}
-                    required
-                    className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select Highest Qualification</option>
-                    <optgroup label="School Education">
-                      <option value="10th/SSC/SSLC">10th/SSC/SSLC</option>
-                      <option value="12th/HSC/Intermediate">12th/HSC/Intermediate</option>
-                    </optgroup>
-                    <optgroup label="Undergraduate">
-                      <option value="B.Tech/B.E.">B.Tech/B.E.</option>
-                      <option value="B.Sc">B.Sc</option>
-                      <option value="B.Com">B.Com</option>
-                      <option value="B.A">B.A</option>
-                      <option value="BBA">BBA</option>
-                      <option value="BCA">BCA</option>
-                    </optgroup>
-                    <optgroup label="Postgraduate">
-                      <option value="M.Tech/M.E.">M.Tech/M.E.</option>
-                      <option value="M.Sc">M.Sc</option>
-                      <option value="M.Com">M.Com</option>
-                      <option value="M.A">M.A</option>
-                      <option value="MBA">MBA</option>
-                      <option value="MCA">MCA</option>
-                    </optgroup>
-                    <optgroup label="Doctoral">
-                      <option value="Ph.D">Ph.D</option>
-                    </optgroup>
-                    <optgroup label="Diplomas">
-                      <option value="Diploma">Diploma</option>
-                      <option value="Advanced Diploma">Advanced Diploma</option>
-                    </optgroup>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Previous Salary (₹)
-                  </label>
-                  <input
-                    type="number"
-                    name="previousSalary"
-                    value={formData.previousSalary}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Expected Salary (₹)
-                  </label>
-                  <input
-                    type="number"
-                    name="expectedSalary"
-                    value={formData.expectedSalary}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Highest Qualification *
+                    </label>
+                    <select
+                      name="highestQualification"
+                      value={formData.highestQualification}
+                      onChange={handleChange}
+                      required
+                      className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select Highest Qualification</option>
+                      <optgroup label="School Education">
+                        <option value="10th/SSC/SSLC">10th/SSC/SSLC</option>
+                        <option value="12th/HSC/Intermediate">
+                          12th/HSC/Intermediate
+                        </option>
+                      </optgroup>
+                      <optgroup label="Undergraduate">
+                        <option value="B.Tech/B.E.">B.Tech/B.E.</option>
+                        <option value="B.Sc">B.Sc</option>
+                        <option value="B.Com">B.Com</option>
+                        <option value="B.A">B.A</option>
+                        <option value="BBA">BBA</option>
+                        <option value="BCA">BCA</option>
+                      </optgroup>
+                      <optgroup label="Postgraduate">
+                        <option value="M.Tech/M.E.">M.Tech/M.E.</option>
+                        <option value="M.Sc">M.Sc</option>
+                        <option value="M.Com">M.Com</option>
+                        <option value="M.A">M.A</option>
+                        <option value="MBA">MBA</option>
+                        <option value="MCA">MCA</option>
+                      </optgroup>
+                      <optgroup label="Doctoral">
+                        <option value="Ph.D">Ph.D</option>
+                      </optgroup>
+                      <optgroup label="Diplomas">
+                        <option value="Diploma">Diploma</option>
+                        <option value="Advanced Diploma">
+                          Advanced Diploma
+                        </option>
+                      </optgroup>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Previous Salary (₹)
+                    </label>
+                    <input
+                      type="number"
+                      name="previousSalary"
+                      value={formData.previousSalary}
+                      onChange={handleChange}
+                      className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Expected Salary (₹)
+                    </label>
+                    <input
+                      type="number"
+                      name="expectedSalary"
+                      value={formData.expectedSalary}
+                      onChange={handleChange}
+                      className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -927,397 +965,692 @@ const CandidateForm: React.FC = () => {
 
           {/* Education */}
           {activeTab === "education" && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-900">
-                  Education Details
-                </h3>
-                <button
-                  type="button"
-                  onClick={addEducation}
-                  className="bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded-md text-sm flex items-center"
-                >
-                  <FaPlus className="mr-1" /> Add Education
-                </button>
-              </div>
-
-              {formData.education.length === 0 ? (
-                <div className="text-center py-4 text-gray-500">
-                  No education details added. Click "Add Education" to add
-                  details.
-                </div>
-              ) : (
-                formData.education.map((edu, index) => (
-                  <div
-                    key={index}
-                    className="bg-gray-50 p-4 rounded-md relative"
+            <div className="space-y-8">
+              {/* Education Section */}
+              <div className="bg-emerald-50 border-l-4 border-emerald-400 p-6 rounded-lg">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-lg font-semibold text-emerald-800 flex items-center">
+                    <span className="w-2 h-2 bg-emerald-500 rounded-full mr-2"></span>
+                    Education Details
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={addEducation}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-4 rounded-md text-sm flex items-center transition-colors duration-200"
                   >
-                    <button
-                      type="button"
-                      onClick={() => removeEducation(index)}
-                      className="absolute top-2 right-2 text-red-600 hover:text-red-800"
-                    >
-                      <FaTrash />
-                    </button>
+                    <FaPlus className="mr-1" /> Add Education
+                  </button>
+                </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Degree/Certificate *
-                        </label>
-                        <select
-                          value={edu.degree}
-                          onChange={(e) =>
-                            updateEducation(index, "degree", e.target.value)
-                          }
-                          required
-                          className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="">Select Degree/Certificate</option>
-                          <optgroup label="School Education">
-                            <option 
-                              value="10th/SSC/SSLC" 
-                              disabled={getSelectedDegrees(index).includes("10th/SSC/SSLC")}
-                              style={{ 
-                                color: getSelectedDegrees(index).includes("10th/SSC/SSLC") ? '#9CA3AF' : 'inherit',
-                                backgroundColor: getSelectedDegrees(index).includes("10th/SSC/SSLC") ? '#F3F4F6' : 'inherit'
-                              }}
-                            >
-                              10th/SSC/SSLC {getSelectedDegrees(index).includes("10th/SSC/SSLC") ? '(Already Added)' : ''}
-                            </option>
-                            <option 
-                              value="12th/HSC/Intermediate" 
-                              disabled={getSelectedDegrees(index).includes("12th/HSC/Intermediate")}
-                              style={{ 
-                                color: getSelectedDegrees(index).includes("12th/HSC/Intermediate") ? '#9CA3AF' : 'inherit',
-                                backgroundColor: getSelectedDegrees(index).includes("12th/HSC/Intermediate") ? '#F3F4F6' : 'inherit'
-                              }}
-                            >
-                              12th/HSC/Intermediate {getSelectedDegrees(index).includes("12th/HSC/Intermediate") ? '(Already Added)' : ''}
-                            </option>
-                          </optgroup>
-                          <optgroup label="Undergraduate">
-                            <option 
-                              value="B.Tech/B.E." 
-                              disabled={getSelectedDegrees(index).includes("B.Tech/B.E.")}
-                              style={{ 
-                                color: getSelectedDegrees(index).includes("B.Tech/B.E.") ? '#9CA3AF' : 'inherit',
-                                backgroundColor: getSelectedDegrees(index).includes("B.Tech/B.E.") ? '#F3F4F6' : 'inherit'
-                              }}
-                            >
-                              B.Tech/B.E. {getSelectedDegrees(index).includes("B.Tech/B.E.") ? '(Already Added)' : ''}
-                            </option>
-                            <option 
-                              value="B.Sc" 
-                              disabled={getSelectedDegrees(index).includes("B.Sc")}
-                              style={{ 
-                                color: getSelectedDegrees(index).includes("B.Sc") ? '#9CA3AF' : 'inherit',
-                                backgroundColor: getSelectedDegrees(index).includes("B.Sc") ? '#F3F4F6' : 'inherit'
-                              }}
-                            >
-                              B.Sc {getSelectedDegrees(index).includes("B.Sc") ? '(Already Added)' : ''}
-                            </option>
-                            <option 
-                              value="B.Com" 
-                              disabled={getSelectedDegrees(index).includes("B.Com")}
-                              style={{ 
-                                color: getSelectedDegrees(index).includes("B.Com") ? '#9CA3AF' : 'inherit',
-                                backgroundColor: getSelectedDegrees(index).includes("B.Com") ? '#F3F4F6' : 'inherit'
-                              }}
-                            >
-                              B.Com {getSelectedDegrees(index).includes("B.Com") ? '(Already Added)' : ''}
-                            </option>
-                            <option 
-                              value="B.A" 
-                              disabled={getSelectedDegrees(index).includes("B.A")}
-                              style={{ 
-                                color: getSelectedDegrees(index).includes("B.A") ? '#9CA3AF' : 'inherit',
-                                backgroundColor: getSelectedDegrees(index).includes("B.A") ? '#F3F4F6' : 'inherit'
-                              }}
-                            >
-                              B.A {getSelectedDegrees(index).includes("B.A") ? '(Already Added)' : ''}
-                            </option>
-                            <option 
-                              value="BBA" 
-                              disabled={getSelectedDegrees(index).includes("BBA")}
-                              style={{ 
-                                color: getSelectedDegrees(index).includes("BBA") ? '#9CA3AF' : 'inherit',
-                                backgroundColor: getSelectedDegrees(index).includes("BBA") ? '#F3F4F6' : 'inherit'
-                              }}
-                            >
-                              BBA {getSelectedDegrees(index).includes("BBA") ? '(Already Added)' : ''}
-                            </option>
-                            <option 
-                              value="BCA" 
-                              disabled={getSelectedDegrees(index).includes("BCA")}
-                              style={{ 
-                                color: getSelectedDegrees(index).includes("BCA") ? '#9CA3AF' : 'inherit',
-                                backgroundColor: getSelectedDegrees(index).includes("BCA") ? '#F3F4F6' : 'inherit'
-                              }}
-                            >
-                              BCA {getSelectedDegrees(index).includes("BCA") ? '(Already Added)' : ''}
-                            </option>
-                          </optgroup>
-                          <optgroup label="Postgraduate">
-                            <option 
-                              value="M.Tech/M.E." 
-                              disabled={getSelectedDegrees(index).includes("M.Tech/M.E.")}
-                              style={{ 
-                                color: getSelectedDegrees(index).includes("M.Tech/M.E.") ? '#9CA3AF' : 'inherit',
-                                backgroundColor: getSelectedDegrees(index).includes("M.Tech/M.E.") ? '#F3F4F6' : 'inherit'
-                              }}
-                            >
-                              M.Tech/M.E. {getSelectedDegrees(index).includes("M.Tech/M.E.") ? '(Already Added)' : ''}
-                            </option>
-                            <option 
-                              value="M.Sc" 
-                              disabled={getSelectedDegrees(index).includes("M.Sc")}
-                              style={{ 
-                                color: getSelectedDegrees(index).includes("M.Sc") ? '#9CA3AF' : 'inherit',
-                                backgroundColor: getSelectedDegrees(index).includes("M.Sc") ? '#F3F4F6' : 'inherit'
-                              }}
-                            >
-                              M.Sc {getSelectedDegrees(index).includes("M.Sc") ? '(Already Added)' : ''}
-                            </option>
-                            <option 
-                              value="M.Com" 
-                              disabled={getSelectedDegrees(index).includes("M.Com")}
-                              style={{ 
-                                color: getSelectedDegrees(index).includes("M.Com") ? '#9CA3AF' : 'inherit',
-                                backgroundColor: getSelectedDegrees(index).includes("M.Com") ? '#F3F4F6' : 'inherit'
-                              }}
-                            >
-                              M.Com {getSelectedDegrees(index).includes("M.Com") ? '(Already Added)' : ''}
-                            </option>
-                            <option 
-                              value="M.A" 
-                              disabled={getSelectedDegrees(index).includes("M.A")}
-                              style={{ 
-                                color: getSelectedDegrees(index).includes("M.A") ? '#9CA3AF' : 'inherit',
-                                backgroundColor: getSelectedDegrees(index).includes("M.A") ? '#F3F4F6' : 'inherit'
-                              }}
-                            >
-                              M.A {getSelectedDegrees(index).includes("M.A") ? '(Already Added)' : ''}
-                            </option>
-                            <option 
-                              value="MBA" 
-                              disabled={getSelectedDegrees(index).includes("MBA")}
-                              style={{ 
-                                color: getSelectedDegrees(index).includes("MBA") ? '#9CA3AF' : 'inherit',
-                                backgroundColor: getSelectedDegrees(index).includes("MBA") ? '#F3F4F6' : 'inherit'
-                              }}
-                            >
-                              MBA {getSelectedDegrees(index).includes("MBA") ? '(Already Added)' : ''}
-                            </option>
-                            <option 
-                              value="MCA" 
-                              disabled={getSelectedDegrees(index).includes("MCA")}
-                              style={{ 
-                                color: getSelectedDegrees(index).includes("MCA") ? '#9CA3AF' : 'inherit',
-                                backgroundColor: getSelectedDegrees(index).includes("MCA") ? '#F3F4F6' : 'inherit'
-                              }}
-                            >
-                              MCA {getSelectedDegrees(index).includes("MCA") ? '(Already Added)' : ''}
-                            </option>
-                          </optgroup>
-                          <optgroup label="Doctoral">
-                            <option 
-                              value="Ph.D" 
-                              disabled={getSelectedDegrees(index).includes("Ph.D")}
-                              style={{ 
-                                color: getSelectedDegrees(index).includes("Ph.D") ? '#9CA3AF' : 'inherit',
-                                backgroundColor: getSelectedDegrees(index).includes("Ph.D") ? '#F3F4F6' : 'inherit'
-                              }}
-                            >
-                              Ph.D {getSelectedDegrees(index).includes("Ph.D") ? '(Already Added)' : ''}
-                            </option>
-                          </optgroup>
-                          <optgroup label="Diplomas">
-                            <option 
-                              value="Diploma" 
-                              disabled={getSelectedDegrees(index).includes("Diploma")}
-                              style={{ 
-                                color: getSelectedDegrees(index).includes("Diploma") ? '#9CA3AF' : 'inherit',
-                                backgroundColor: getSelectedDegrees(index).includes("Diploma") ? '#F3F4F6' : 'inherit'
-                              }}
-                            >
-                              Diploma {getSelectedDegrees(index).includes("Diploma") ? '(Already Added)' : ''}
-                            </option>
-                            <option 
-                              value="Advanced Diploma" 
-                              disabled={getSelectedDegrees(index).includes("Advanced Diploma")}
-                              style={{ 
-                                color: getSelectedDegrees(index).includes("Advanced Diploma") ? '#9CA3AF' : 'inherit',
-                                backgroundColor: getSelectedDegrees(index).includes("Advanced Diploma") ? '#F3F4F6' : 'inherit'
-                              }}
-                            >
-                              Advanced Diploma {getSelectedDegrees(index).includes("Advanced Diploma") ? '(Already Added)' : ''}
-                            </option>
-                          </optgroup>
-                          <optgroup label="Certifications">
-                            <option 
-                              value="Professional Certificate" 
-                              disabled={getSelectedDegrees(index).includes("Professional Certificate")}
-                              style={{ 
-                                color: getSelectedDegrees(index).includes("Professional Certificate") ? '#9CA3AF' : 'inherit',
-                                backgroundColor: getSelectedDegrees(index).includes("Professional Certificate") ? '#F3F4F6' : 'inherit'
-                              }}
-                            >
-                              Professional Certificate {getSelectedDegrees(index).includes("Professional Certificate") ? '(Already Added)' : ''}
-                            </option>
-                            <option 
-                              value="Industry Certification" 
-                              disabled={getSelectedDegrees(index).includes("Industry Certification")}
-                              style={{ 
-                                color: getSelectedDegrees(index).includes("Industry Certification") ? '#9CA3AF' : 'inherit',
-                                backgroundColor: getSelectedDegrees(index).includes("Industry Certification") ? '#F3F4F6' : 'inherit'
-                              }}
-                            >
-                              Industry Certification {getSelectedDegrees(index).includes("Industry Certification") ? '(Already Added)' : ''}
-                            </option>
-                          </optgroup>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Institution *
-                        </label>
-                        <input
-                          type="text"
-                          value={edu.institution}
-                          onChange={(e) =>
-                            updateEducation(
-                              index,
-                              "institution",
-                              e.target.value
-                            )
-                          }
-                          required
-                          className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Field of Study *
-                        </label>
-                        <select
-                          value={edu.fieldOfStudy}
-                          onChange={(e) =>
-                            updateEducation(index, "fieldOfStudy", e.target.value)
-                          }
-                          required
-                          className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="">Select Field of Study</option>
-                          <optgroup label="Engineering & Technology">
-                            <option value="Computer Science Engineering">Computer Science Engineering</option>
-                            <option value="Information Technology">Information Technology</option>
-                            <option value="Electronics & Communication">Electronics & Communication</option>
-                            <option value="Mechanical Engineering">Mechanical Engineering</option>
-                            <option value="Civil Engineering">Civil Engineering</option>
-                            <option value="Electrical Engineering">Electrical Engineering</option>
-                          </optgroup>
-                          <optgroup label="Science">
-                            <option value="Computer Science">Computer Science</option>
-                            <option value="Physics">Physics</option>
-                            <option value="Chemistry">Chemistry</option>
-                            <option value="Mathematics">Mathematics</option>
-                            <option value="Biology">Biology</option>
-                          </optgroup>
-                          <optgroup label="Commerce & Management">
-                            <option value="Commerce">Commerce</option>
-                            <option value="Business Administration">Business Administration</option>
-                            <option value="Finance">Finance</option>
-                            <option value="Marketing">Marketing</option>
-                            <option value="Human Resources">Human Resources</option>
-                          </optgroup>
-                          <optgroup label="Arts & Humanities">
-                            <option value="English">English</option>
-                            <option value="History">History</option>
-                            <option value="Political Science">Political Science</option>
-                            <option value="Psychology">Psychology</option>
-                            <option value="Sociology">Sociology</option>
-                          </optgroup>
-                          <optgroup label="Other">
-                            <option value="General Studies">General Studies</option>
-                            <option value="Other">Other</option>
-                          </optgroup>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Year of Passing *
-                        </label>
-                        <select
-                          value={edu.yearOfPassing}
-                          onChange={(e) =>
-                            updateEducation(
-                              index,
-                              "yearOfPassing",
-                              parseInt(e.target.value)
-                            )
-                          }
-                          required
-                          className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="">Select Year</option>
-                          {Array.from({ length: new Date().getFullYear() - 1949 }, (_, i) => {
-                            const year = new Date().getFullYear() - i;
-                            return (
-                              <option key={year} value={year}>
-                                {year}
-                              </option>
-                            );
-                          })}
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Percentage/CGPA *
-                        </label>
-                        <input
-                          type="number"
-                          value={edu.percentage}
-                          onChange={(e) =>
-                            updateEducation(
-                              index,
-                              "percentage",
-                              parseFloat(e.target.value)
-                            )
-                          }
-                          required
-                          min="0"
-                          max="100"
-                          step="0.01"
-                          className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
+                {formData.education.length === 0 ? (
+                  <div className="text-center py-4 text-gray-500">
+                    No education details added. Click "Add Education" to add
+                    details.
                   </div>
-                ))
-              )}
+                ) : (
+                  formData.education.map((edu, index) => (
+                    <div
+                      key={index}
+                      className="bg-gray-50 p-4 rounded-md relative"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => removeEducation(index)}
+                        className="absolute top-2 right-2 text-red-600 hover:text-red-800"
+                      >
+                        <FaTrash />
+                      </button>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Degree/Certificate *
+                          </label>
+                          <select
+                            value={edu.degree}
+                            onChange={(e) =>
+                              updateEducation(index, "degree", e.target.value)
+                            }
+                            required
+                            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">Select Degree/Certificate</option>
+                            <optgroup label="School Education">
+                              <option
+                                value="10th/SSC/SSLC"
+                                disabled={getSelectedDegrees(index).includes(
+                                  "10th/SSC/SSLC"
+                                )}
+                                style={{
+                                  color: getSelectedDegrees(index).includes(
+                                    "10th/SSC/SSLC"
+                                  )
+                                    ? "#9CA3AF"
+                                    : "inherit",
+                                  backgroundColor: getSelectedDegrees(
+                                    index
+                                  ).includes("10th/SSC/SSLC")
+                                    ? "#F3F4F6"
+                                    : "inherit",
+                                }}
+                              >
+                                10th/SSC/SSLC{" "}
+                                {getSelectedDegrees(index).includes(
+                                  "10th/SSC/SSLC"
+                                )
+                                  ? "(Already Added)"
+                                  : ""}
+                              </option>
+                              <option
+                                value="12th/HSC/Intermediate"
+                                disabled={getSelectedDegrees(index).includes(
+                                  "12th/HSC/Intermediate"
+                                )}
+                                style={{
+                                  color: getSelectedDegrees(index).includes(
+                                    "12th/HSC/Intermediate"
+                                  )
+                                    ? "#9CA3AF"
+                                    : "inherit",
+                                  backgroundColor: getSelectedDegrees(
+                                    index
+                                  ).includes("12th/HSC/Intermediate")
+                                    ? "#F3F4F6"
+                                    : "inherit",
+                                }}
+                              >
+                                12th/HSC/Intermediate{" "}
+                                {getSelectedDegrees(index).includes(
+                                  "12th/HSC/Intermediate"
+                                )
+                                  ? "(Already Added)"
+                                  : ""}
+                              </option>
+                            </optgroup>
+                            <optgroup label="Undergraduate">
+                              <option
+                                value="B.Tech/B.E."
+                                disabled={getSelectedDegrees(index).includes(
+                                  "B.Tech/B.E."
+                                )}
+                                style={{
+                                  color: getSelectedDegrees(index).includes(
+                                    "B.Tech/B.E."
+                                  )
+                                    ? "#9CA3AF"
+                                    : "inherit",
+                                  backgroundColor: getSelectedDegrees(
+                                    index
+                                  ).includes("B.Tech/B.E.")
+                                    ? "#F3F4F6"
+                                    : "inherit",
+                                }}
+                              >
+                                B.Tech/B.E.{" "}
+                                {getSelectedDegrees(index).includes(
+                                  "B.Tech/B.E."
+                                )
+                                  ? "(Already Added)"
+                                  : ""}
+                              </option>
+                              <option
+                                value="B.Sc"
+                                disabled={getSelectedDegrees(index).includes(
+                                  "B.Sc"
+                                )}
+                                style={{
+                                  color: getSelectedDegrees(index).includes(
+                                    "B.Sc"
+                                  )
+                                    ? "#9CA3AF"
+                                    : "inherit",
+                                  backgroundColor: getSelectedDegrees(
+                                    index
+                                  ).includes("B.Sc")
+                                    ? "#F3F4F6"
+                                    : "inherit",
+                                }}
+                              >
+                                B.Sc{" "}
+                                {getSelectedDegrees(index).includes("B.Sc")
+                                  ? "(Already Added)"
+                                  : ""}
+                              </option>
+                              <option
+                                value="B.Com"
+                                disabled={getSelectedDegrees(index).includes(
+                                  "B.Com"
+                                )}
+                                style={{
+                                  color: getSelectedDegrees(index).includes(
+                                    "B.Com"
+                                  )
+                                    ? "#9CA3AF"
+                                    : "inherit",
+                                  backgroundColor: getSelectedDegrees(
+                                    index
+                                  ).includes("B.Com")
+                                    ? "#F3F4F6"
+                                    : "inherit",
+                                }}
+                              >
+                                B.Com{" "}
+                                {getSelectedDegrees(index).includes("B.Com")
+                                  ? "(Already Added)"
+                                  : ""}
+                              </option>
+                              <option
+                                value="B.A"
+                                disabled={getSelectedDegrees(index).includes(
+                                  "B.A"
+                                )}
+                                style={{
+                                  color: getSelectedDegrees(index).includes(
+                                    "B.A"
+                                  )
+                                    ? "#9CA3AF"
+                                    : "inherit",
+                                  backgroundColor: getSelectedDegrees(
+                                    index
+                                  ).includes("B.A")
+                                    ? "#F3F4F6"
+                                    : "inherit",
+                                }}
+                              >
+                                B.A{" "}
+                                {getSelectedDegrees(index).includes("B.A")
+                                  ? "(Already Added)"
+                                  : ""}
+                              </option>
+                              <option
+                                value="BBA"
+                                disabled={getSelectedDegrees(index).includes(
+                                  "BBA"
+                                )}
+                                style={{
+                                  color: getSelectedDegrees(index).includes(
+                                    "BBA"
+                                  )
+                                    ? "#9CA3AF"
+                                    : "inherit",
+                                  backgroundColor: getSelectedDegrees(
+                                    index
+                                  ).includes("BBA")
+                                    ? "#F3F4F6"
+                                    : "inherit",
+                                }}
+                              >
+                                BBA{" "}
+                                {getSelectedDegrees(index).includes("BBA")
+                                  ? "(Already Added)"
+                                  : ""}
+                              </option>
+                              <option
+                                value="BCA"
+                                disabled={getSelectedDegrees(index).includes(
+                                  "BCA"
+                                )}
+                                style={{
+                                  color: getSelectedDegrees(index).includes(
+                                    "BCA"
+                                  )
+                                    ? "#9CA3AF"
+                                    : "inherit",
+                                  backgroundColor: getSelectedDegrees(
+                                    index
+                                  ).includes("BCA")
+                                    ? "#F3F4F6"
+                                    : "inherit",
+                                }}
+                              >
+                                BCA{" "}
+                                {getSelectedDegrees(index).includes("BCA")
+                                  ? "(Already Added)"
+                                  : ""}
+                              </option>
+                            </optgroup>
+                            <optgroup label="Postgraduate">
+                              <option
+                                value="M.Tech/M.E."
+                                disabled={getSelectedDegrees(index).includes(
+                                  "M.Tech/M.E."
+                                )}
+                                style={{
+                                  color: getSelectedDegrees(index).includes(
+                                    "M.Tech/M.E."
+                                  )
+                                    ? "#9CA3AF"
+                                    : "inherit",
+                                  backgroundColor: getSelectedDegrees(
+                                    index
+                                  ).includes("M.Tech/M.E.")
+                                    ? "#F3F4F6"
+                                    : "inherit",
+                                }}
+                              >
+                                M.Tech/M.E.{" "}
+                                {getSelectedDegrees(index).includes(
+                                  "M.Tech/M.E."
+                                )
+                                  ? "(Already Added)"
+                                  : ""}
+                              </option>
+                              <option
+                                value="M.Sc"
+                                disabled={getSelectedDegrees(index).includes(
+                                  "M.Sc"
+                                )}
+                                style={{
+                                  color: getSelectedDegrees(index).includes(
+                                    "M.Sc"
+                                  )
+                                    ? "#9CA3AF"
+                                    : "inherit",
+                                  backgroundColor: getSelectedDegrees(
+                                    index
+                                  ).includes("M.Sc")
+                                    ? "#F3F4F6"
+                                    : "inherit",
+                                }}
+                              >
+                                M.Sc{" "}
+                                {getSelectedDegrees(index).includes("M.Sc")
+                                  ? "(Already Added)"
+                                  : ""}
+                              </option>
+                              <option
+                                value="M.Com"
+                                disabled={getSelectedDegrees(index).includes(
+                                  "M.Com"
+                                )}
+                                style={{
+                                  color: getSelectedDegrees(index).includes(
+                                    "M.Com"
+                                  )
+                                    ? "#9CA3AF"
+                                    : "inherit",
+                                  backgroundColor: getSelectedDegrees(
+                                    index
+                                  ).includes("M.Com")
+                                    ? "#F3F4F6"
+                                    : "inherit",
+                                }}
+                              >
+                                M.Com{" "}
+                                {getSelectedDegrees(index).includes("M.Com")
+                                  ? "(Already Added)"
+                                  : ""}
+                              </option>
+                              <option
+                                value="M.A"
+                                disabled={getSelectedDegrees(index).includes(
+                                  "M.A"
+                                )}
+                                style={{
+                                  color: getSelectedDegrees(index).includes(
+                                    "M.A"
+                                  )
+                                    ? "#9CA3AF"
+                                    : "inherit",
+                                  backgroundColor: getSelectedDegrees(
+                                    index
+                                  ).includes("M.A")
+                                    ? "#F3F4F6"
+                                    : "inherit",
+                                }}
+                              >
+                                M.A{" "}
+                                {getSelectedDegrees(index).includes("M.A")
+                                  ? "(Already Added)"
+                                  : ""}
+                              </option>
+                              <option
+                                value="MBA"
+                                disabled={getSelectedDegrees(index).includes(
+                                  "MBA"
+                                )}
+                                style={{
+                                  color: getSelectedDegrees(index).includes(
+                                    "MBA"
+                                  )
+                                    ? "#9CA3AF"
+                                    : "inherit",
+                                  backgroundColor: getSelectedDegrees(
+                                    index
+                                  ).includes("MBA")
+                                    ? "#F3F4F6"
+                                    : "inherit",
+                                }}
+                              >
+                                MBA{" "}
+                                {getSelectedDegrees(index).includes("MBA")
+                                  ? "(Already Added)"
+                                  : ""}
+                              </option>
+                              <option
+                                value="MCA"
+                                disabled={getSelectedDegrees(index).includes(
+                                  "MCA"
+                                )}
+                                style={{
+                                  color: getSelectedDegrees(index).includes(
+                                    "MCA"
+                                  )
+                                    ? "#9CA3AF"
+                                    : "inherit",
+                                  backgroundColor: getSelectedDegrees(
+                                    index
+                                  ).includes("MCA")
+                                    ? "#F3F4F6"
+                                    : "inherit",
+                                }}
+                              >
+                                MCA{" "}
+                                {getSelectedDegrees(index).includes("MCA")
+                                  ? "(Already Added)"
+                                  : ""}
+                              </option>
+                            </optgroup>
+                            <optgroup label="Doctoral">
+                              <option
+                                value="Ph.D"
+                                disabled={getSelectedDegrees(index).includes(
+                                  "Ph.D"
+                                )}
+                                style={{
+                                  color: getSelectedDegrees(index).includes(
+                                    "Ph.D"
+                                  )
+                                    ? "#9CA3AF"
+                                    : "inherit",
+                                  backgroundColor: getSelectedDegrees(
+                                    index
+                                  ).includes("Ph.D")
+                                    ? "#F3F4F6"
+                                    : "inherit",
+                                }}
+                              >
+                                Ph.D{" "}
+                                {getSelectedDegrees(index).includes("Ph.D")
+                                  ? "(Already Added)"
+                                  : ""}
+                              </option>
+                            </optgroup>
+                            <optgroup label="Diplomas">
+                              <option
+                                value="Diploma"
+                                disabled={getSelectedDegrees(index).includes(
+                                  "Diploma"
+                                )}
+                                style={{
+                                  color: getSelectedDegrees(index).includes(
+                                    "Diploma"
+                                  )
+                                    ? "#9CA3AF"
+                                    : "inherit",
+                                  backgroundColor: getSelectedDegrees(
+                                    index
+                                  ).includes("Diploma")
+                                    ? "#F3F4F6"
+                                    : "inherit",
+                                }}
+                              >
+                                Diploma{" "}
+                                {getSelectedDegrees(index).includes("Diploma")
+                                  ? "(Already Added)"
+                                  : ""}
+                              </option>
+                              <option
+                                value="Advanced Diploma"
+                                disabled={getSelectedDegrees(index).includes(
+                                  "Advanced Diploma"
+                                )}
+                                style={{
+                                  color: getSelectedDegrees(index).includes(
+                                    "Advanced Diploma"
+                                  )
+                                    ? "#9CA3AF"
+                                    : "inherit",
+                                  backgroundColor: getSelectedDegrees(
+                                    index
+                                  ).includes("Advanced Diploma")
+                                    ? "#F3F4F6"
+                                    : "inherit",
+                                }}
+                              >
+                                Advanced Diploma{" "}
+                                {getSelectedDegrees(index).includes(
+                                  "Advanced Diploma"
+                                )
+                                  ? "(Already Added)"
+                                  : ""}
+                              </option>
+                            </optgroup>
+                            <optgroup label="Certifications">
+                              <option
+                                value="Professional Certificate"
+                                disabled={getSelectedDegrees(index).includes(
+                                  "Professional Certificate"
+                                )}
+                                style={{
+                                  color: getSelectedDegrees(index).includes(
+                                    "Professional Certificate"
+                                  )
+                                    ? "#9CA3AF"
+                                    : "inherit",
+                                  backgroundColor: getSelectedDegrees(
+                                    index
+                                  ).includes("Professional Certificate")
+                                    ? "#F3F4F6"
+                                    : "inherit",
+                                }}
+                              >
+                                Professional Certificate{" "}
+                                {getSelectedDegrees(index).includes(
+                                  "Professional Certificate"
+                                )
+                                  ? "(Already Added)"
+                                  : ""}
+                              </option>
+                              <option
+                                value="Industry Certification"
+                                disabled={getSelectedDegrees(index).includes(
+                                  "Industry Certification"
+                                )}
+                                style={{
+                                  color: getSelectedDegrees(index).includes(
+                                    "Industry Certification"
+                                  )
+                                    ? "#9CA3AF"
+                                    : "inherit",
+                                  backgroundColor: getSelectedDegrees(
+                                    index
+                                  ).includes("Industry Certification")
+                                    ? "#F3F4F6"
+                                    : "inherit",
+                                }}
+                              >
+                                Industry Certification{" "}
+                                {getSelectedDegrees(index).includes(
+                                  "Industry Certification"
+                                )
+                                  ? "(Already Added)"
+                                  : ""}
+                              </option>
+                            </optgroup>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Institution *
+                          </label>
+                          <input
+                            type="text"
+                            value={edu.institution}
+                            onChange={(e) =>
+                              updateEducation(
+                                index,
+                                "institution",
+                                e.target.value
+                              )
+                            }
+                            required
+                            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Field of Study *
+                          </label>
+                          <select
+                            value={edu.fieldOfStudy}
+                            onChange={(e) =>
+                              updateEducation(
+                                index,
+                                "fieldOfStudy",
+                                e.target.value
+                              )
+                            }
+                            required
+                            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">Select Field of Study</option>
+                            <optgroup label="Engineering & Technology">
+                              <option value="Computer Science Engineering">
+                                Computer Science Engineering
+                              </option>
+                              <option value="Information Technology">
+                                Information Technology
+                              </option>
+                              <option value="Electronics & Communication">
+                                Electronics & Communication
+                              </option>
+                              <option value="Mechanical Engineering">
+                                Mechanical Engineering
+                              </option>
+                              <option value="Civil Engineering">
+                                Civil Engineering
+                              </option>
+                              <option value="Electrical Engineering">
+                                Electrical Engineering
+                              </option>
+                            </optgroup>
+                            <optgroup label="Science">
+                              <option value="Computer Science">
+                                Computer Science
+                              </option>
+                              <option value="Physics">Physics</option>
+                              <option value="Chemistry">Chemistry</option>
+                              <option value="Mathematics">Mathematics</option>
+                              <option value="Biology">Biology</option>
+                            </optgroup>
+                            <optgroup label="Commerce & Management">
+                              <option value="Commerce">Commerce</option>
+                              <option value="Business Administration">
+                                Business Administration
+                              </option>
+                              <option value="Finance">Finance</option>
+                              <option value="Marketing">Marketing</option>
+                              <option value="Human Resources">
+                                Human Resources
+                              </option>
+                            </optgroup>
+                            <optgroup label="Arts & Humanities">
+                              <option value="English">English</option>
+                              <option value="History">History</option>
+                              <option value="Political Science">
+                                Political Science
+                              </option>
+                              <option value="Psychology">Psychology</option>
+                              <option value="Sociology">Sociology</option>
+                            </optgroup>
+                            <optgroup label="Other">
+                              <option value="General Studies">
+                                General Studies
+                              </option>
+                              <option value="Other">Other</option>
+                            </optgroup>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Year of Passing *
+                          </label>
+                          <select
+                            value={edu.yearOfPassing}
+                            onChange={(e) =>
+                              updateEducation(
+                                index,
+                                "yearOfPassing",
+                                parseInt(e.target.value)
+                              )
+                            }
+                            required
+                            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">Select Year</option>
+                            {Array.from(
+                              { length: new Date().getFullYear() - 1949 },
+                              (_, i) => {
+                                const year = new Date().getFullYear() - i;
+                                return (
+                                  <option key={year} value={year}>
+                                    {year}
+                                  </option>
+                                );
+                              }
+                            )}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Percentage/CGPA *
+                          </label>
+                          <input
+                            type="number"
+                            value={edu.percentage}
+                            onChange={(e) =>
+                              updateEducation(
+                                index,
+                                "percentage",
+                                parseFloat(e.target.value)
+                              )
+                            }
+                            required
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           )}
 
           {/* Experience */}
           {activeTab === "experience" && (
-            <div className="space-y-6">
-              {/* IT Experience */}
-              <div>
+            <div className="space-y-8">
+              {/* IT Experience Section */}
+              <div className="bg-cyan-50 border-l-4 border-cyan-400 p-6 rounded-lg">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">
+                  <h4 className="text-lg font-semibold text-cyan-800 flex items-center">
+                    <span className="w-2 h-2 bg-cyan-500 rounded-full mr-2"></span>
                     IT Experience
-                  </h3>
+                  </h4>
                   <button
                     type="button"
                     onClick={() => addExperience("IT")}
-                    className="bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded-md text-sm flex items-center"
+                    className="bg-cyan-600 hover:bg-cyan-700 text-white py-2 px-4 rounded-md text-sm flex items-center transition-colors duration-200"
                   >
                     <FaPlus className="mr-1" /> Add IT Experience
                   </button>
@@ -1446,16 +1779,17 @@ const CandidateForm: React.FC = () => {
                 )}
               </div>
 
-              {/* Non-IT Experience */}
-              <div>
+              {/* Non-IT Experience Section */}
+              <div className="bg-teal-50 border-l-4 border-teal-400 p-6 rounded-lg">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">
+                  <h4 className="text-lg font-semibold text-teal-800 flex items-center">
+                    <span className="w-2 h-2 bg-teal-500 rounded-full mr-2"></span>
                     Non-IT Experience
-                  </h3>
+                  </h4>
                   <button
                     type="button"
                     onClick={() => addExperience("NON_IT")}
-                    className="bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded-md text-sm flex items-center"
+                    className="bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-md text-sm flex items-center transition-colors duration-200"
                   >
                     <FaPlus className="mr-1" /> Add Non-IT Experience
                   </button>
@@ -1584,16 +1918,17 @@ const CandidateForm: React.FC = () => {
                 )}
               </div>
 
-              {/* Career Gaps */}
-              <div>
+              {/* Career Gaps Section */}
+              <div className="bg-amber-50 border-l-4 border-amber-400 p-6 rounded-lg">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">
+                  <h4 className="text-lg font-semibold text-amber-800 flex items-center">
+                    <span className="w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
                     Career Gaps
-                  </h3>
+                  </h4>
                   <button
                     type="button"
                     onClick={addCareerGap}
-                    className="bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded-md text-sm flex items-center"
+                    className="bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-md text-sm flex items-center transition-colors duration-200"
                   >
                     <FaPlus className="mr-1" /> Add Career Gap
                   </button>
@@ -1675,278 +2010,347 @@ const CandidateForm: React.FC = () => {
 
           {/* Skills */}
           {activeTab === "skills" && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-900">Skills</h3>
-                <button
-                  type="button"
-                  onClick={addSkill}
-                  className="bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded-md text-sm flex items-center"
-                >
-                  <FaPlus className="mr-1" /> Add Skill
-                </button>
-              </div>
-
-              {formData.skills.length === 0 ? (
-                <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-md">
-                  No skills added. Click "Add Skill" to add details.
+            <div className="space-y-8">
+              {/* Skills Section */}
+              <div className="bg-rose-50 border-l-4 border-rose-400 p-6 rounded-lg">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-lg font-semibold text-rose-800 flex items-center">
+                    <span className="w-2 h-2 bg-rose-500 rounded-full mr-2"></span>
+                    Skills
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={addSkill}
+                    className="bg-rose-600 hover:bg-rose-700 text-white py-2 px-4 rounded-md text-sm flex items-center transition-colors duration-200"
+                  >
+                    <FaPlus className="mr-1" /> Add Skill
+                  </button>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {formData.skills.map((skill, index) => (
-                    <div
-                      key={index}
-                      className="bg-gray-50 p-4 rounded-md relative"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => removeSkill(index)}
-                        className="absolute top-2 right-2 text-red-600 hover:text-red-800"
+
+                {formData.skills.length === 0 ? (
+                  <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-md">
+                    No skills added. Click "Add Skill" to add details.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {formData.skills.map((skill, index) => (
+                      <div
+                        key={index}
+                        className="bg-gray-50 p-4 rounded-md relative"
                       >
-                        <FaTrash />
-                      </button>
-
-                      <div className="mb-3">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Skill Name *
-                        </label>
-                        <input
-                          type="text"
-                          value={skill.name}
-                          onChange={(e) =>
-                            updateSkill(index, "name", e.target.value)
-                          }
-                          required
-                          className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Type
-                          </label>
-                          <select
-                            value={skill.type}
-                            onChange={(e) =>
-                              updateSkill(index, "type", e.target.value)
-                            }
-                            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          >
-                            <option value="IT">IT</option>
-                            <option value="NON_IT">Non-IT</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Proficiency
-                          </label>
-                          <select
-                            value={skill.proficiency}
-                            onChange={(e) =>
-                              updateSkill(index, "proficiency", e.target.value)
-                            }
-                            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          >
-                            <option value="BEGINNER">Beginner</option>
-                            <option value="INTERMEDIATE">Intermediate</option>
-                            <option value="ADVANCED">Advanced</option>
-                            <option value="EXPERT">Expert</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="mt-3">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Acquired During
-                        </label>
-                        <select
-                          value={skill.acquiredDuring}
-                          onChange={(e) =>
-                            updateSkill(index, "acquiredDuring", e.target.value)
-                          }
-                          className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        <button
+                          type="button"
+                          onClick={() => removeSkill(index)}
+                          className="absolute top-2 right-2 text-red-600 hover:text-red-800"
                         >
-                          <option value="BEFORE_TRAINING">
-                            Before Training
-                          </option>
-                          <option value="DURING_TRAINING">
-                            During Training
-                          </option>
-                        </select>
+                          <FaTrash />
+                        </button>
+
+                        <div className="mb-3">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Skill Name *
+                          </label>
+                          <input
+                            type="text"
+                            value={skill.name}
+                            onChange={(e) =>
+                              updateSkill(index, "name", e.target.value)
+                            }
+                            required
+                            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Type
+                            </label>
+                            <select
+                              value={skill.type}
+                              onChange={(e) =>
+                                updateSkill(index, "type", e.target.value)
+                              }
+                              className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="IT">IT</option>
+                              <option value="NON_IT">Non-IT</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Proficiency
+                            </label>
+                            <select
+                              value={skill.proficiency}
+                              onChange={(e) =>
+                                updateSkill(
+                                  index,
+                                  "proficiency",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="BEGINNER">Beginner</option>
+                              <option value="INTERMEDIATE">Intermediate</option>
+                              <option value="ADVANCED">Advanced</option>
+                              <option value="EXPERT">Expert</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="mt-3">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Acquired During
+                          </label>
+                          <select
+                            value={skill.acquiredDuring}
+                            onChange={(e) =>
+                              updateSkill(
+                                index,
+                                "acquiredDuring",
+                                e.target.value
+                              )
+                            }
+                            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="BEFORE_TRAINING">
+                              Before Training
+                            </option>
+                            <option value="DURING_TRAINING">
+                              During Training
+                            </option>
+                          </select>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
           {/* Documents */}
           {activeTab === "documents" && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-900">Documents</h3>
-              <p className="text-sm text-gray-500 mb-4">
-                Upload candidate documents. Supported formats: PDF, DOC, DOCX,
-                JPG, PNG (Max size: 5MB)
-              </p>
+            <div className="space-y-8">
+              {/* Documents Section */}
+              <div className="bg-violet-50 border-l-4 border-violet-400 p-6 rounded-lg">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-lg font-semibold text-violet-800 flex items-center">
+                    <span className="w-2 h-2 bg-violet-500 rounded-full mr-2"></span>
+                    Documents
+                  </h4>
+                  <div className="text-sm text-violet-700">
+                    Upload your documents below
+                  </div>
+                </div>
+
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Resume
+                </label>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={(e) => handleFileChange(e, "RESUME")}
+                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                {uploadProgress["RESUME"] && (
+                  <div className="mt-2">
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div
+                        className="bg-blue-600 h-2.5 rounded-full"
+                        style={{ width: `${uploadProgress["RESUME"]}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {uploadProgress["RESUME"]}% uploaded
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-md">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Offer Letter
+                </label>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  onChange={(e) => handleFileChange(e, "OFFER_LETTER")}
+                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                {uploadProgress["OFFER_LETTER"] && (
+                  <div className="mt-2">
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div
+                        className="bg-blue-600 h-2.5 rounded-full"
+                        style={{
+                          width: `${uploadProgress["OFFER_LETTER"]}%`,
+                        }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {uploadProgress["OFFER_LETTER"]}% uploaded
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-md">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Relieving Letter
+                </label>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  onChange={(e) => handleFileChange(e, "RELIEVING_LETTER")}
+                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                {uploadProgress["RELIEVING_LETTER"] && (
+                  <div className="mt-2">
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div
+                        className="bg-blue-600 h-2.5 rounded-full"
+                        style={{
+                          width: `${uploadProgress["RELIEVING_LETTER"]}%`,
+                        }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {uploadProgress["RELIEVING_LETTER"]}% uploaded
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-md">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  ID Proof
+                </label>
+                <input
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={(e) => handleFileChange(e, "ID_PROOF")}
+                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                {uploadProgress["ID_PROOF"] && (
+                  <div className="mt-2">
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div
+                        className="bg-blue-600 h-2.5 rounded-full"
+                        style={{ width: `${uploadProgress["ID_PROOF"]}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {uploadProgress["ID_PROOF"]}% uploaded
+                    </p>
+                  </div>
+                )}
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-gray-50 p-4 rounded-md">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Resume
-                  </label>
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={(e) => handleFileChange(e, "RESUME")}
-                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                  />
-                  {uploadProgress["RESUME"] && (
-                    <div className="mt-2">
-                      <div className="w-full bg-gray-200 rounded-full h-2.5">
-                        <div
-                          className="bg-blue-600 h-2.5 rounded-full"
-                          style={{ width: `${uploadProgress["RESUME"]}%` }}
-                        ></div>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {uploadProgress["RESUME"]}% uploaded
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="bg-gray-50 p-4 rounded-md">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Offer Letter
-                  </label>
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                    onChange={(e) => handleFileChange(e, "OFFER_LETTER")}
-                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                  />
-                  {uploadProgress["OFFER_LETTER"] && (
-                    <div className="mt-2">
-                      <div className="w-full bg-gray-200 rounded-full h-2.5">
-                        <div
-                          className="bg-blue-600 h-2.5 rounded-full"
-                          style={{
-                            width: `${uploadProgress["OFFER_LETTER"]}%`,
-                          }}
-                        ></div>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {uploadProgress["OFFER_LETTER"]}% uploaded
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="bg-gray-50 p-4 rounded-md">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Relieving Letter
-                  </label>
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                    onChange={(e) => handleFileChange(e, "RELIEVING_LETTER")}
-                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                  />
-                  {uploadProgress["RELIEVING_LETTER"] && (
-                    <div className="mt-2">
-                      <div className="w-full bg-gray-200 rounded-full h-2.5">
-                        <div
-                          className="bg-blue-600 h-2.5 rounded-full"
-                          style={{
-                            width: `${uploadProgress["RELIEVING_LETTER"]}%`,
-                          }}
-                        ></div>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {uploadProgress["RELIEVING_LETTER"]}% uploaded
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="bg-gray-50 p-4 rounded-md">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ID Proof
+                    Aadhar Card
                   </label>
                   <input
                     type="file"
                     accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={(e) => handleFileChange(e, "ID_PROOF")}
+                    onChange={(e) => handleFileChange(e, "AADHAR")}
                     className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                   />
-                  {uploadProgress["ID_PROOF"] && (
+                  {uploadProgress["AADHAR"] && (
                     <div className="mt-2">
-                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div className="bg-gray-200 rounded-full h-2">
                         <div
-                          className="bg-blue-600 h-2.5 rounded-full"
-                          style={{ width: `${uploadProgress["ID_PROOF"]}%` }}
+                          className="bg-blue-600 h-2 rounded-full"
+                          style={{ width: `${uploadProgress["AADHAR"]}%` }}
                         ></div>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
-                        {uploadProgress["ID_PROOF"]}% uploaded
+                        {uploadProgress["AADHAR"]}% uploaded
                       </p>
                     </div>
                   )}
                 </div>
 
-                <div className="bg-gray-50 p-4 rounded-md">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Bank Statement
+                    PAN Card
                   </label>
                   <input
                     type="file"
                     accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={(e) => handleFileChange(e, "BANK_STATEMENT")}
+                    onChange={(e) => handleFileChange(e, "PAN")}
                     className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                   />
-                  {uploadProgress["BANK_STATEMENT"] && (
+                  {uploadProgress["PAN"] && (
                     <div className="mt-2">
-                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div className="bg-gray-200 rounded-full h-2">
                         <div
-                          className="bg-blue-600 h-2.5 rounded-full"
-                          style={{
-                            width: `${uploadProgress["BANK_STATEMENT"]}%`,
-                          }}
+                          className="bg-blue-600 h-2 rounded-full"
+                          style={{ width: `${uploadProgress["PAN"]}%` }}
                         ></div>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
-                        {uploadProgress["BANK_STATEMENT"]}% uploaded
+                        {uploadProgress["PAN"]}% uploaded
                       </p>
                     </div>
                   )}
                 </div>
+              </div>
 
-                <div className="bg-gray-50 p-4 rounded-md">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Other Document
-                  </label>
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                    onChange={(e) => handleFileChange(e, "OTHER")}
-                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                  />
-                  {uploadProgress["OTHER"] && (
-                    <div className="mt-2">
-                      <div className="w-full bg-gray-200 rounded-full h-2.5">
-                        <div
-                          className="bg-blue-600 h-2.5 rounded-full"
-                          style={{ width: `${uploadProgress["OTHER"]}%` }}
-                        ></div>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {uploadProgress["OTHER"]}% uploaded
-                      </p>
+              <div className="bg-gray-50 p-4 rounded-md">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Bank Statement
+                </label>
+                <input
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={(e) => handleFileChange(e, "BANK_STATEMENT")}
+                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                {uploadProgress["BANK_STATEMENT"] && (
+                  <div className="mt-2">
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div
+                        className="bg-blue-600 h-2.5 rounded-full"
+                        style={{
+                          width: `${uploadProgress["BANK_STATEMENT"]}%`,
+                        }}
+                      ></div>
                     </div>
-                  )}
-                </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {uploadProgress["BANK_STATEMENT"]}% uploaded
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-md">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Other Document
+                </label>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  onChange={(e) => handleFileChange(e, "OTHER")}
+                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+                {uploadProgress["OTHER"] && (
+                  <div className="mt-2">
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <div
+                        className="bg-blue-600 h-2.5 rounded-full"
+                        style={{ width: `${uploadProgress["OTHER"]}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {uploadProgress["OTHER"]}% uploaded
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Existing Documents */}

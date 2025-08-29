@@ -1,6 +1,7 @@
 import Notification from '../models/Notification.js';
 import nodemailer from 'nodemailer';
 import twilio from 'twilio';
+import { logTwilioStatus } from '../utils/twilioHealthCheck.js';
 
 class NotificationService {
   constructor() {
@@ -19,6 +20,9 @@ class NotificationService {
     this.smsClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
       ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
       : null;
+    
+    // Log Twilio configuration status on startup
+    logTwilioStatus();
   }
 
   // Create notification
@@ -81,14 +85,23 @@ class NotificationService {
       }
 
       // Send SMS
-      if (notification.channels?.sms?.enabled && recipient.contactNumber && this.smsClient) {
-        try {
-          await this.sendSMS(notification, recipient);
-          notification.channels.sms.sent = true;
-          notification.channels.sms.sentAt = new Date();
-        } catch (error) {
-          notification.channels.sms.error = error.message;
-          allChannelsSuccessful = false;
+      if (notification.channels?.sms?.enabled && recipient.contactNumber) {
+        if (!this.smsClient) {
+          console.warn('SMS channel enabled but Twilio not configured - skipping SMS');
+          notification.channels.sms.error = 'SMS service not configured';
+          notification.channels.sms.sent = false;
+          // Don't mark as failed if SMS is not critical
+        } else {
+          try {
+            await this.sendSMS(notification, recipient);
+            notification.channels.sms.sent = true;
+            notification.channels.sms.sentAt = new Date();
+          } catch (error) {
+            console.error('SMS sending failed:', error.message);
+            notification.channels.sms.error = error.message;
+            notification.channels.sms.sent = false;
+            allChannelsSuccessful = false;
+          }
         }
       }
 
@@ -125,16 +138,28 @@ class NotificationService {
   // Send SMS notification
   async sendSMS(notification, recipient) {
     if (!this.smsClient) {
-      throw new Error('SMS service not configured');
+      console.warn('SMS service not configured - Twilio credentials missing');
+      throw new Error('SMS service not configured - Twilio credentials missing');
+    }
+
+    if (!process.env.TWILIO_PHONE_NUMBER) {
+      console.warn('TWILIO_PHONE_NUMBER not configured');
+      throw new Error('TWILIO_PHONE_NUMBER not configured');
     }
 
     const message = this.getSMSMessage(notification);
     
-    await this.smsClient.messages.create({
-      body: message,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: recipient.contactNumber,
-    });
+    try {
+      await this.smsClient.messages.create({
+        body: message,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: recipient.contactNumber,
+      });
+      console.log(`SMS sent successfully to ${recipient.contactNumber}`);
+    } catch (error) {
+      console.error('Twilio SMS sending failed:', error.message);
+      throw new Error(`SMS sending failed: ${error.message}`);
+    }
   }
 
   // Get email template based on notification type
@@ -268,7 +293,7 @@ class NotificationService {
       priority: 'HIGH',
       channels: {
         email: { enabled: true },
-        sms: { enabled: true },
+        sms: { enabled: !!this.smsClient }, // Only enable SMS if Twilio is configured
         inApp: { enabled: true }
       },
       relatedEntity: {

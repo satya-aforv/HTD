@@ -535,24 +535,24 @@ const PaymentsList: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end space-x-2">
+                      <div className="flex items-center justify-end space-x-2">
                         <button
                           onClick={() => navigate(`/htd/payments/${payment?._id}`)}
-                          className="text-blue-600 hover:text-blue-900"
-                          title="View"
+                          className="text-blue-600 hover:text-blue-900 p-1 rounded"
+                          title="View Details"
                         >
                           <FaEye />
                         </button>
                         <button
                           onClick={() => navigate(`/htd/payments/${payment?._id}/edit`)}
-                          className="text-yellow-600 hover:text-yellow-900"
+                          className="text-green-600 hover:text-green-900 p-1 rounded"
                           title="Edit"
                         >
                           <FaEdit />
                         </button>
                         <button
                           onClick={() => handleDeletePayment(payment?._id)}
-                          className="text-red-600 hover:text-red-900"
+                          className="text-red-600 hover:text-red-900 p-1 rounded"
                           title="Delete"
                         >
                           <FaTrash />

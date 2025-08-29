@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import api from "../../../services/api";
+import { motion } from "framer-motion";
 import { FaPlus, FaTrash } from "react-icons/fa";
+import FloatingParticles from "../../Common/FloatingParticles";
+import Autocomplete from "../../Common/Autocomplete";
+import { useLocationData } from "../../../hooks/useLocationData";
+import api from "../../../services/api";
 
 interface Education {
   degree: string;
   institution: string;
-  field: string;
+  fieldOfStudy: string;
   yearOfPassing: number;
   percentage: number;
   _id?: string;
@@ -94,10 +98,21 @@ const CandidateForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [formData, setFormData] = useState<CandidateFormData>(initialFormData);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<string>("personal");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [activeTab, setActiveTab] = useState("personal");
+  const [selectedState, setSelectedState] = useState<{value: string, label: string} | null>(null);
+  const [selectedCity, setSelectedCity] = useState<{value: string, label: string} | null>(null);
+
+  // Location data hook
+  const {
+    states,
+    cities,
+    loadCitiesForState,
+    getLocationByPincode,
+    isValidPincode
+  } = useLocationData();
   const [fileUploads, setFileUploads] = useState<{
     [key: string]: File | null;
   }>({});
@@ -188,8 +203,8 @@ const CandidateForm: React.FC = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      setError(null);
-      setSuccess(null);
+      setError("");
+      setSuccess("");
 
       let response;
       if (id) {
@@ -280,7 +295,7 @@ const CandidateForm: React.FC = () => {
         {
           degree: "",
           institution: "",
-          field: "",
+          fieldOfStudy: "",
           yearOfPassing: new Date().getFullYear(),
           percentage: 0,
         },
@@ -444,118 +459,208 @@ const CandidateForm: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-800">
+    <motion.div 
+      className="p-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+    >
+      <FloatingParticles />
+      <motion.div 
+        className="mb-6"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <motion.h1 
+          className="text-2xl font-semibold text-gray-800"
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
           {id ? "Edit Candidate" : "Add New Candidate"}
-        </h1>
-        <p className="text-gray-600 mt-1">
+        </motion.h1>
+        <motion.p 
+          className="text-gray-600 mt-1"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
           {id
             ? "Update candidate information"
             : "Create a new candidate profile"}
-        </p>
-      </div>
+        </motion.p>
+      </motion.div>
 
       {error && (
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
+        <motion.div 
+          className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded"
+          initial={{ opacity: 0, x: -20, scale: 0.95 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          exit={{ opacity: 0, x: -20, scale: 0.95 }}
+          transition={{ duration: 0.3 }}
+        >
           <p>{error}</p>
-        </div>
+        </motion.div>
       )}
 
       {success && (
-        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded">
+        <motion.div 
+          className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded"
+          initial={{ opacity: 0, x: -20, scale: 0.95 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          exit={{ opacity: 0, x: -20, scale: 0.95 }}
+          transition={{ duration: 0.3 }}
+        >
           <p>{success}</p>
-        </div>
+        </motion.div>
       )}
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <motion.div 
+        className="bg-white rounded-lg shadow-md overflow-hidden"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+      >
         {/* Tabs */}
-        <div className="border-b border-gray-200">
+        <motion.div 
+          className="border-b border-gray-200"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.6 }}
+        >
           <nav className="-mb-px flex">
-            <button
+            <motion.button
               onClick={() => setActiveTab("personal")}
-              className={`py-4 px-6 text-center border-b-2 font-medium text-sm ${
+              className={`py-4 px-6 text-center border-b-2 font-medium text-sm transition-all duration-200 ${
                 activeTab === "personal"
                   ? "border-blue-500 text-blue-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.7 }}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
             >
               Personal Information
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={() => setActiveTab("education")}
-              className={`py-4 px-6 text-center border-b-2 font-medium text-sm ${
+              className={`py-4 px-6 text-center border-b-2 font-medium text-sm transition-all duration-200 ${
                 activeTab === "education"
                   ? "border-blue-500 text-blue-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.8 }}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
             >
               Education
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={() => setActiveTab("experience")}
-              className={`py-4 px-6 text-center border-b-2 font-medium text-sm ${
+              className={`py-4 px-6 text-center border-b-2 font-medium text-sm transition-all duration-200 ${
                 activeTab === "experience"
                   ? "border-blue-500 text-blue-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.9 }}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
             >
               Experience
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={() => setActiveTab("skills")}
-              className={`py-4 px-6 text-center border-b-2 font-medium text-sm ${
+              className={`py-4 px-6 text-center border-b-2 font-medium text-sm transition-all duration-200 ${
                 activeTab === "skills"
                   ? "border-blue-500 text-blue-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 1.0 }}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
             >
               Skills
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={() => setActiveTab("documents")}
-              className={`py-4 px-6 text-center border-b-2 font-medium text-sm ${
+              className={`py-4 px-6 text-center border-b-2 font-medium text-sm transition-all duration-200 ${
                 activeTab === "documents"
                   ? "border-blue-500 text-blue-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 1.1 }}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
             >
               Documents
-            </button>
+            </motion.button>
           </nav>
-        </div>
+        </motion.div>
 
-        <form onSubmit={handleSubmit} className="p-6">
+        <motion.form 
+          onSubmit={handleSubmit} 
+          className="p-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 1.2 }}
+        >
           {/* Personal Information */}
           {activeTab === "personal" && (
-            <div className="space-y-6">
+            <motion.div 
+              className="space-y-6"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.4 }}
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, delay: 0.3 }}
+                >
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Full Name *
                   </label>
-                  <input
+                  <motion.input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                    whileFocus={{ scale: 1.02, boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)" }}
                   />
-                </div>
-                <div>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, delay: 0.4 }}
+                >
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Email *
                   </label>
-                  <input
+                  <motion.input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                    whileFocus={{ scale: 1.02, boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)" }}
                   />
-                </div>
+                </motion.div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -638,38 +743,72 @@ const CandidateForm: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    City
+                    State *
                   </label>
-                  <input
-                    type="text"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    State
-                  </label>
-                  <input
-                    type="text"
-                    name="state"
+                  <Autocomplete
+                    options={states}
                     value={formData.state}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(value) => {
+                      const state = states.find(s => s.value === value);
+                      setSelectedState(state || null);
+                      setFormData(prev => ({ ...prev, state: value, city: '', pincode: '' }));
+                      if (state) {
+                        loadCitiesForState(value);
+                      }
+                    }}
+                    placeholder="Search and select state..."
+                    className="w-full"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Pincode
+                    City *
                   </label>
-                  <input
-                    type="text"
-                    name="pincode"
+                  <Autocomplete
+                    options={cities}
+                    value={formData.city}
+                    onChange={(value) => {
+                      const city = cities.find(c => c.value === value);
+                      setSelectedCity(city || null);
+                      setFormData(prev => ({ ...prev, city: value, pincode: '' }));
+                    }}
+                    placeholder={selectedState ? "Search and select city..." : "Select state first"}
+                    disabled={!selectedState}
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Pincode *
+                  </label>
+                  <Autocomplete
+                    options={[]}
                     value={formData.pincode}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(value) => {
+                      setFormData(prev => ({ ...prev, pincode: value }));
+                      if (isValidPincode(value)) {
+                        getLocationByPincode(value).then(locationData => {
+                          if (locationData) {
+                            const state = states.find(s => s.label === locationData.state);
+                            const city = cities.find(c => c.label === locationData.city);
+                            if (state) {
+                              setSelectedState(state);
+                              setFormData(prev => ({ ...prev, state: state.value }));
+                              loadCitiesForState(state.value);
+                            }
+                            if (city) {
+                              setSelectedCity(city);
+                              setFormData(prev => ({ ...prev, city: city.value }));
+                            }
+                          }
+                        });
+                      }
+                    }}
+                    placeholder="Enter 6-digit pincode..."
+                    className="w-full"
+                    onInputChange={(inputValue) => {
+                      setFormData(prev => ({ ...prev, pincode: inputValue }));
+                    }}
                   />
                 </div>
               </div>
@@ -677,15 +816,44 @@ const CandidateForm: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Highest Qualification
+                    Highest Qualification *
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="highestQualification"
                     value={formData.highestQualification}
                     onChange={handleChange}
+                    required
                     className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  >
+                    <option value="">Select Highest Qualification</option>
+                    <optgroup label="School Education">
+                      <option value="10th/SSC/SSLC">10th/SSC/SSLC</option>
+                      <option value="12th/HSC/Intermediate">12th/HSC/Intermediate</option>
+                    </optgroup>
+                    <optgroup label="Undergraduate">
+                      <option value="B.Tech/B.E.">B.Tech/B.E.</option>
+                      <option value="B.Sc">B.Sc</option>
+                      <option value="B.Com">B.Com</option>
+                      <option value="B.A">B.A</option>
+                      <option value="BBA">BBA</option>
+                      <option value="BCA">BCA</option>
+                    </optgroup>
+                    <optgroup label="Postgraduate">
+                      <option value="M.Tech/M.E.">M.Tech/M.E.</option>
+                      <option value="M.Sc">M.Sc</option>
+                      <option value="M.Com">M.Com</option>
+                      <option value="M.A">M.A</option>
+                      <option value="MBA">MBA</option>
+                      <option value="MCA">MCA</option>
+                    </optgroup>
+                    <optgroup label="Doctoral">
+                      <option value="Ph.D">Ph.D</option>
+                    </optgroup>
+                    <optgroup label="Diplomas">
+                      <option value="Diploma">Diploma</option>
+                      <option value="Advanced Diploma">Advanced Diploma</option>
+                    </optgroup>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -726,7 +894,7 @@ const CandidateForm: React.FC = () => {
                   placeholder="Additional notes about the candidate..."
                 />
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Education */}
@@ -769,15 +937,47 @@ const CandidateForm: React.FC = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Degree/Certificate *
                         </label>
-                        <input
-                          type="text"
+                        <select
                           value={edu.degree}
                           onChange={(e) =>
                             updateEducation(index, "degree", e.target.value)
                           }
                           required
                           className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
+                        >
+                          <option value="">Select Degree/Certificate</option>
+                          <optgroup label="School Education">
+                            <option value="10th/SSC/SSLC">10th/SSC/SSLC</option>
+                            <option value="12th/HSC/Intermediate">12th/HSC/Intermediate</option>
+                          </optgroup>
+                          <optgroup label="Undergraduate">
+                            <option value="B.Tech/B.E.">B.Tech/B.E.</option>
+                            <option value="B.Sc">B.Sc</option>
+                            <option value="B.Com">B.Com</option>
+                            <option value="B.A">B.A</option>
+                            <option value="BBA">BBA</option>
+                            <option value="BCA">BCA</option>
+                          </optgroup>
+                          <optgroup label="Postgraduate">
+                            <option value="M.Tech/M.E.">M.Tech/M.E.</option>
+                            <option value="M.Sc">M.Sc</option>
+                            <option value="M.Com">M.Com</option>
+                            <option value="M.A">M.A</option>
+                            <option value="MBA">MBA</option>
+                            <option value="MCA">MCA</option>
+                          </optgroup>
+                          <optgroup label="Doctoral">
+                            <option value="Ph.D">Ph.D</option>
+                          </optgroup>
+                          <optgroup label="Diplomas">
+                            <option value="Diploma">Diploma</option>
+                            <option value="Advanced Diploma">Advanced Diploma</option>
+                          </optgroup>
+                          <optgroup label="Certifications">
+                            <option value="Professional Certificate">Professional Certificate</option>
+                            <option value="Industry Certification">Industry Certification</option>
+                          </optgroup>
+                        </select>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -799,26 +999,60 @@ const CandidateForm: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Field of Study
+                          Field of Study *
                         </label>
-                        <input
-                          type="text"
-                          value={edu.field}
+                        <select
+                          value={edu.fieldOfStudy}
                           onChange={(e) =>
-                            updateEducation(index, "field", e.target.value)
+                            updateEducation(index, "fieldOfStudy", e.target.value)
                           }
+                          required
                           className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
+                        >
+                          <option value="">Select Field of Study</option>
+                          <optgroup label="Engineering & Technology">
+                            <option value="Computer Science Engineering">Computer Science Engineering</option>
+                            <option value="Information Technology">Information Technology</option>
+                            <option value="Electronics & Communication">Electronics & Communication</option>
+                            <option value="Mechanical Engineering">Mechanical Engineering</option>
+                            <option value="Civil Engineering">Civil Engineering</option>
+                            <option value="Electrical Engineering">Electrical Engineering</option>
+                          </optgroup>
+                          <optgroup label="Science">
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Physics">Physics</option>
+                            <option value="Chemistry">Chemistry</option>
+                            <option value="Mathematics">Mathematics</option>
+                            <option value="Biology">Biology</option>
+                          </optgroup>
+                          <optgroup label="Commerce & Management">
+                            <option value="Commerce">Commerce</option>
+                            <option value="Business Administration">Business Administration</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Human Resources">Human Resources</option>
+                          </optgroup>
+                          <optgroup label="Arts & Humanities">
+                            <option value="English">English</option>
+                            <option value="History">History</option>
+                            <option value="Political Science">Political Science</option>
+                            <option value="Psychology">Psychology</option>
+                            <option value="Sociology">Sociology</option>
+                          </optgroup>
+                          <optgroup label="Other">
+                            <option value="General Studies">General Studies</option>
+                            <option value="Other">Other</option>
+                          </optgroup>
+                        </select>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Year of Passing *
                         </label>
-                        <input
-                          type="number"
+                        <select
                           value={edu.yearOfPassing}
                           onChange={(e) =>
                             updateEducation(
@@ -828,11 +1062,22 @@ const CandidateForm: React.FC = () => {
                             )
                           }
                           required
-                          min="1950"
-                          max={new Date().getFullYear()}
                           className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
+                        >
+                          <option value="">Select Year</option>
+                          {Array.from({ length: new Date().getFullYear() - 1949 }, (_, i) => {
+                            const year = new Date().getFullYear() - i;
+                            return (
+                              <option key={year} value={year}>
+                                {year}
+                              </option>
+                            );
+                          })}
+                        </select>
                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Percentage/CGPA *
@@ -1581,9 +1826,9 @@ const CandidateForm: React.FC = () => {
               {id ? "Update Candidate" : "Create Candidate"}
             </button>
           </div>
-        </form>
-      </div>
-    </div>
+        </motion.form>
+      </motion.div>
+    </motion.div>
   );
 };
 

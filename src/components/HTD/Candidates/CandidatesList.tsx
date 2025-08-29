@@ -271,34 +271,28 @@ const CandidatesList: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
+                      <div className="flex items-center justify-end space-x-2">
+                        <button
                           onClick={() => navigate(`/htd/candidates/${candidate._id}`)}
-                          className="flex items-center"
+                          className="text-blue-600 hover:text-blue-900 p-1 rounded"
+                          title="View Details"
                         >
-                          <Eye className="h-4 w-4 mr-1" />
-                          View
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button
                           onClick={() => navigate(`/htd/candidates/${candidate._id}/edit`)}
-                          className="flex items-center"
+                          className="text-green-600 hover:text-green-900 p-1 rounded"
+                          title="Edit"
                         >
-                          <Edit className="h-4 w-4 mr-1" />
-                          Edit
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
                           onClick={() => handleDelete(candidate._id)}
-                          className="flex items-center"
+                          className="text-red-600 hover:text-red-900 p-1 rounded"
+                          title="Delete"
                         >
-                          <Trash2 className="h-4 w-4 mr-1" />
-                          Delete
-                        </Button>
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>

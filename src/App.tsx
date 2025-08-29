@@ -102,7 +102,7 @@ const PublicRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated } = useAuthStore();
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/htd/dashboard" replace />;
   }
 
   return <>{children}</>;

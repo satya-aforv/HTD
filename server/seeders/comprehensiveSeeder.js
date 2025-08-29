@@ -391,7 +391,7 @@ async function createAdminUser() {
   try {
     // Check if admin already exists
     const existingAdmin = await User.findOne({
-      $or: [{ email: "admin@matrixmedys.com" }, { role: "admin" }],
+      $or: [{ email: "admin@aforv.com" }, { role: "admin" }],
     });
 
     if (existingAdmin) {
@@ -405,7 +405,7 @@ async function createAdminUser() {
     // Create admin user
     const adminUser = new User({
       name: "System Administrator",
-      email: "admin@matrixmedys.com",
+      email: "admin@aforv.com",
       password: hashedPassword,
       gender: "MALE",
       location: "BANGALORE",
@@ -416,14 +416,14 @@ async function createAdminUser() {
       role: "admin",
       status: "active",
       address: "BANGALORE",
-      profileImage: "https://matrixmedys.com/images/avatars/avatar-1.png",
+      profileImage: "https://aforv.com/images/avatars/avatar-1.png",
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
     await adminUser.save();
     console.log("✅ Admin user created successfully!");
-    console.log("📧 Email: admin@matrixmedys.com | 🔑 Password: Admin@123");
+    console.log("📧 Email: admin@aforv.com | 🔑 Password: Admin@123");
 
     return adminUser;
   } catch (error) {
@@ -547,7 +547,7 @@ async function comprehensiveSeeder() {
     console.log("=====================================");
     console.log("🚀 You can now start using the application!");
     console.log("🌐 Frontend: http://localhost:5173");
-    console.log("📧 Login: admin@matrixmedys.com");
+    console.log("📧 Login: admin@aforv.com");
     console.log("🔑 Password: Admin@123");
     console.log("=====================================");
   } catch (error) {

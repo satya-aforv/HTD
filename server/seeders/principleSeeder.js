@@ -9,7 +9,7 @@ dotenv.config();
 
 async function connectToDatabase() {
   try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/matrixmedys';
+    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/aforv';
     await mongoose.connect(mongoUri);
     console.log('✅ Connected to MongoDB');
     return true;

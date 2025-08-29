@@ -69,7 +69,7 @@ const Register: React.FC = () => {
               <span className="text-2xl font-bold text-white">T</span>
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Create Account</h1>
-            <p className="text-gray-600 mt-2">Join Matryx Medizys today</p>
+            <p className="text-gray-600 mt-2">Join aforv today</p>
           </div>
 
           {/* Form */}

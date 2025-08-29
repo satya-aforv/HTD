@@ -43,7 +43,7 @@ const doctorPermissions = [
 
 async function connectToDatabase() {
   try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/matrixmedys';
+    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/aforv';
     await mongoose.connect(mongoUri);
     console.log('✅ Connected to MongoDB');
     console.log(`🔗 Connected to: ${mongoUri}`);
@@ -86,7 +86,7 @@ async function seedDoctorPermissions() {
     
     // Find users to assign permissions to
     console.log('👤 Looking for users to assign permissions...');
-    const adminEmails = ['admin@matrixmedys.com', 'admin@techcorp.com'];
+    const adminEmails = ['admin@aforv.com', 'admin@techcorp.com'];
     let targetUser = null;
     
     // Try to find admin user

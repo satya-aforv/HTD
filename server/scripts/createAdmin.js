@@ -84,13 +84,13 @@ async function createAdminUser() {
   try {
     // Connect to MongoDB
     await mongoose.connect(
-      process.env.MONGODB_URI || "mongodb://localhost:27017/matrixmedys"
+      process.env.MONGODB_URI || "mongodb://localhost:27017/aforv"
     );
     console.log("Connected to MongoDB");
 
     // Check if admin already exists
     const existingAdmin = await User.findOne({
-      $or: [{ email: "admin@matrixmedys.com" }, { role: "admin" }],
+      $or: [{ email: "admin@aforv.com" }, { role: "admin" }],
     });
 
     if (existingAdmin) {
@@ -108,7 +108,7 @@ async function createAdminUser() {
     // Create admin user
     const adminUser = new User({
       name: "System Administrator",
-      email: "admin@matrixmedys.com",
+      email: "admin@aforv.com",
       password: hashedPassword,
       role: "admin",
       permissions: [
@@ -135,7 +135,7 @@ async function createAdminUser() {
     console.log("✅ Admin user created successfully!");
     console.log("=====================================");
     console.log("Admin Login Credentials:");
-    console.log("Email: admin@matrixmedys.com");
+    console.log("Email: admin@aforv.com");
     console.log("Password: Admin@123");
     console.log("Role: admin");
     console.log("=====================================");

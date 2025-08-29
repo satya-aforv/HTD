@@ -123,8 +123,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
             <span className="text-xl font-bold">M</span>
           </div>
           <div>
-            <h2 className="text-lg font-semibold">Matryx</h2>
-            <p className="text-sm text-slate-400">Medizys</p>
+            <h2 className="text-lg font-semibold">Aforv</h2>
+            <p className="text-sm text-slate-400">DMS</p>
           </div>
         </div>
       </div>

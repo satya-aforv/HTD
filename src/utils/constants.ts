@@ -1,7 +1,7 @@
 export const APP_CONFIG = {
-  name: import.meta.env.VITE_APP_NAME || 'Matryx Medizys',
+  name: import.meta.env.VITE_APP_NAME || 'aforv',
   company: {
-    name: import.meta.env.VITE_COMPANY_NAME || 'Matryx Medizys',
+    name: import.meta.env.VITE_COMPANY_NAME || 'aforv',
     website: import.meta.env.VITE_COMPANY_WEBSITE || 'https://techcorp.com',
     email: 'contact@techcorp.com',
     phone: '+1 (555) 123-4567',

@@ -1,40 +1,123 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaEdit, FaArrowLeft, FaDownload, FaCalendarAlt, FaUser, FaMoneyBillWave, FaFileAlt } from 'react-icons/fa';
+import { 
+  FaEdit, 
+  FaArrowLeft, 
+  FaDownload, 
+  FaCalendarAlt, 
+  FaUser, 
+  FaMoneyBillWave, 
+  FaFileAlt, 
+  FaExclamationTriangle,
+  FaFilePdf,
+  FaPrint
+} from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { paymentAPI, Payment } from '../../../services/paymentAPI';
+import LoadingSpinner from '../../Common/LoadingSpinner';
+import ErrorBoundary from '../../Common/ErrorBoundary';
+import { format } from 'date-fns';
 
-const PaymentDetail: React.FC = () => {
+interface PaymentDetailProps {
+  enablePrint?: boolean;
+}
+
+const PaymentDetail: React.FC<PaymentDetailProps> = ({ enablePrint = false }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
   const [payment, setPayment] = useState<Payment | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
+
+
+  const handlePrint = useCallback(() => {
+    setIsPrinting(true);
+    window.print();
+  }, []);
+
+  // Reset printing state after print dialog closes
   useEffect(() => {
-    const fetchPayment = async () => {
-      try {
-        setLoading(true);
-        const data = await paymentAPI.getPayment(id as string);
-        setPayment(data);
-      } catch (error) {
-        console.error('Error fetching payment details:', error);
-        toast.error('Failed to fetch payment details');
-        navigate('/htd/payments');
-      } finally {
-        setLoading(false);
-      }
-    };
+    const handleAfterPrint = () => setIsPrinting(false);
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => window.removeEventListener('afterprint', handleAfterPrint);
+  }, []);
 
-    fetchPayment();
-  }, [id, navigate]);
+  const renderLoadingState = () => (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <LoadingSpinner size="lg" />
+    </div>
+  );
+
+  const renderErrorState = () => (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-4xl mx-auto p-6"
+    >
+      <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-md">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <FaExclamationTriangle className="h-5 w-5 text-red-400" aria-hidden="true" />
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-red-800">
+              {error || 'Payment not found'}
+            </h3>
+            <div className="mt-2 text-sm text-red-700">
+              <p>The requested payment could not be found or you don't have permission to view it.</p>
+              {offline ? (
+                <p>You are currently offline. Please check your internet connection and try again.</p>
+              ) : (
+                <p>An error occurred while fetching payment data. Please try again.</p>
+              )}
+              {retryCount.current < 3 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    retryCount.current++;
+                    fetchPaymentData();
+                  }}
+                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  Retry
+                </button>
+              )}
+            </div>
+            <div className="mt-4">
+              <button
+                type="button"
+                onClick={() => navigate('/htd/payments')}
+                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              >
+                Back to Payments
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    try {
+      return format(new Date(dateString), 'MMMM d, yyyy');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
+    }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
   };
 
   const getStatusBadgeClass = (status: string) => {
@@ -90,51 +173,55 @@ const PaymentDetail: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  if (!payment) {
-    return (
-      <div className="p-6 text-center text-red-500">
-        Payment record not found.
-      </div>
-    );
-  }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate('/htd/payments')}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-full"
-          >
-            <FaArrowLeft />
-          </button>
-          <h1 className="text-2xl font-bold text-gray-800">
-            Payment Details
-          </h1>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={handleGenerateReceipt}
-            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md flex items-center gap-2"
-          >
-            <FaDownload /> Generate Receipt
-          </button>
-          <button
-            onClick={() => navigate(`/htd/payments/${id}/edit`)}
-            className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-md flex items-center gap-2"
-          >
-            <FaEdit /> Edit
-          </button>
-        </div>
-      </div>
+    <ErrorBoundary>
+      <div className={`p-6 print:p-0 ${isPrinting ? 'print-mode' : ''}`}>
+        <AnimatePresence>
+          {!enablePrint && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex justify-between items-center mb-6 print:hidden"
+            >
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => navigate('/htd/payments')}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-full transition-colors duration-200"
+                  aria-label="Back to payments"
+                >
+                  <FaArrowLeft />
+                </button>
+                <h1 className="text-2xl font-bold text-gray-800">
+                  Payment Details
+                </h1>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleGenerateReceipt}
+                  className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md flex items-center gap-2 transition-colors duration-200"
+                  disabled={loading}
+                >
+                  <FaFilePdf /> Generate PDF
+                </button>
+                <button
+                  onClick={handlePrint}
+                  className="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-md flex items-center gap-2 transition-colors duration-200"
+                  disabled={loading}
+                >
+                  <FaPrint /> Print
+                </button>
+                <button
+                  onClick={() => navigate(`/htd/payments/${id}/edit`)}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-md flex items-center gap-2 transition-colors duration-200"
+                  disabled={loading}
+                >
+                  <FaEdit /> Edit
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
       {/* Payment Header */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -316,4 +403,7 @@ const PaymentDetail: React.FC = () => {
   );
 };
 
-export default PaymentDetail;
+// Add display name for better debugging
+PaymentDetail.displayName = 'PaymentDetail';
+
+export default React.memo(PaymentDetail);

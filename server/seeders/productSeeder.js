@@ -18,7 +18,7 @@ const productPermissions = [
 
 async function connectToDatabase() {
   try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/matrixmedys';
+    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/aforv';
     await mongoose.connect(mongoUri);
     console.log('✅ Connected to MongoDB');
     return true;
@@ -34,7 +34,7 @@ export async function seedProducts() {
     await Product.deleteMany({});
 
     const principles = await Principle.find({});
-    let adminUser = await User.findOne({ email: 'admin@matrixmedys.com' });
+    let adminUser = await User.findOne({ email: 'admin@aforv.com' });
 
     if (principles.length === 0) {
       console.log('⚠️ Please seed principles first.');

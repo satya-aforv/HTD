@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { htdAPI, Candidate } from "../../../services/htdAPI";
 import { getErrorMessage } from "../../../lib/utils";
+import { getStatusBadge } from "../../Common/StatusBadge";
 
 const CandidatesList: React.FC = () => {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
@@ -78,25 +79,6 @@ const CandidatesList: React.FC = () => {
     setSkillFilter("");
     setCurrentPage(1);
     fetchCandidates();
-  };
-
-  const getStatusColor = (status?: string) => {
-    if (!status) return "bg-gray-100 text-gray-800";
-
-    switch (status.toUpperCase()) {
-      case "ACTIVE":
-        return "bg-green-100 text-green-800";
-      case "IN_TRAINING":
-        return "bg-blue-100 text-blue-800";
-      case "DEPLOYED":
-        return "bg-purple-100 text-purple-800";
-      case "ON_HOLD":
-        return "bg-yellow-100 text-yellow-800";
-      case "TERMINATED":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
   };
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -246,13 +228,7 @@ const CandidatesList: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
-                          candidate?.status
-                        )}`}
-                      >
-                        {candidate?.status?.replace(/_/g, " ") || "N/A"}
-                      </span>
+                      {getStatusBadge(candidate?.status || "N/A")}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div>IT: {candidate?.totalITExperience ?? 0} years</div>

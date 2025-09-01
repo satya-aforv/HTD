@@ -1,9 +1,18 @@
-import React from 'react';
 
 export const getStatusBadge = (status: string) => {
   const statusLower = status.toLowerCase();
 
-  if (statusLower.includes('pending') || statusLower.includes('processing') || statusLower.includes('ongoing') || statusLower.includes('in_progress')) {
+  if (
+    statusLower.includes('pending') ||
+    statusLower.includes('processing') ||
+    statusLower.includes('ongoing') ||
+    statusLower.includes('in_progress') ||
+    statusLower.includes('in-progress') ||
+    statusLower.includes('on-hold') ||
+    statusLower.includes('on_hold') ||
+    statusLower.includes('in training') ||
+    statusLower.includes('in_training')
+  ) {
     return (
       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
         {status}
@@ -11,7 +20,13 @@ export const getStatusBadge = (status: string) => {
     );
   }
 
-  if (statusLower.includes('active') || statusLower.includes('completed') || statusLower.includes('success')) {
+  if (
+    statusLower.includes('active') ||
+    statusLower.includes('completed') ||
+    statusLower.includes('success') ||
+    statusLower.includes('paid') ||
+    statusLower.includes('deployed')
+  ) {
     return (
       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
         {status}
@@ -19,7 +34,13 @@ export const getStatusBadge = (status: string) => {
     );
   }
 
-  if (statusLower.includes('declined') || statusLower.includes('rejected') || statusLower.includes('failed')) {
+  if (
+    statusLower.includes('declined') ||
+    statusLower.includes('rejected') ||
+    statusLower.includes('failed') ||
+    statusLower.includes('terminated') ||
+    statusLower.includes('error')
+  ) {
     return (
       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
         {status}
@@ -42,3 +63,4 @@ export const getStatusBadge = (status: string) => {
     </span>
   );
 };
+

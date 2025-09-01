@@ -10,6 +10,7 @@ import {
 } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { htdAPI, Training } from "../../../services/htdAPI";
+import { getStatusBadge } from "../../Common/StatusBadge";
 
 const TrainingsList: React.FC = () => {
   const [trainings, setTrainings] = useState<Training[]>([]);
@@ -91,60 +92,6 @@ const TrainingsList: React.FC = () => {
     fetchTrainings();
   }, [fetchTrainings]);
 
-  const getStatusBadge = (status: string) => {
-    const statusLower = status.toLowerCase();
-
-    if (
-      statusLower.includes("pending") ||
-      statusLower.includes("processing") ||
-      statusLower.includes("IN_PROGRESS")
-    ) {
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-          {status}
-        </span>
-      );
-    }
-
-    if (
-      statusLower.includes("active") ||
-      statusLower.includes("completed") ||
-      statusLower.includes("success")
-    ) {
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-          {status}
-        </span>
-      );
-    }
-
-    if (
-      statusLower.includes("declined") ||
-      statusLower.includes("rejected") ||
-      statusLower.includes("failed")
-    ) {
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-          {status}
-        </span>
-      );
-    }
-
-    if (statusLower.includes("refunded") || statusLower.includes("cancelled")) {
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-          {status}
-        </span>
-      );
-    }
-
-    // Default for unknown status
-    return (
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-        {status}
-      </span>
-    );
-  };
 
   const handleDelete = async (id?: string) => {
     if (!id) {
@@ -220,42 +167,21 @@ const TrainingsList: React.FC = () => {
     }
   };
 
-  const getStatusBadgeClass = (status?: string) => {
-    if (!status) return "bg-gray-100 text-gray-800";
-
-    switch (status.toLowerCase()) {
-      case "active":
-        return "bg-green-100 text-green-800";
-      case "completed":
-        return "bg-blue-100 text-blue-800";
-      case "on-hold":
-        return "bg-yellow-100 text-yellow-800";
-      case "cancelled":
-        return "bg-red-100 text-red-800";
-      case "in_progress":
-        return "bg-orange-100 text-orange-800";
-      case "pending":
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">
+    <div className="px-3 sm:px-4 md:px-6 py-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
           Training Management
         </h1>
         <Link
           to="/htd/trainings/new"
-          className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md flex items-center gap-2"
+          className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md flex items-center justify-center gap-2 w-full sm:w-auto"
         >
           <FaPlus /> Add New Training
         </Link>
       </div>
 
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6">
         <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
           <div className="relative flex-1">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -270,7 +196,7 @@ const TrainingsList: React.FC = () => {
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 md:w-auto">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <FaFilter className="text-gray-400" />
@@ -299,7 +225,7 @@ const TrainingsList: React.FC = () => {
             No training records found. Add a new training record to get started.
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="-mx-4 sm:mx-0 overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -382,13 +308,7 @@ const TrainingsList: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(
-                          training?.status
-                        )}`}
-                      >
-                        {training?.status || "Unknown"}
-                      </span>
+                      {getStatusBadge(training?.status || "Unknown")}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">
@@ -461,11 +381,11 @@ const TrainingsList: React.FC = () => {
 
         {/* Pagination */}
         {!loading && trainings.length > 0 && (
-          <div className="flex justify-between items-center mt-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mt-6">
             <div className="text-sm text-gray-500">
               Showing page {currentPage} of {totalPages}
             </div>
-            <div className="flex space-x-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   FaEdit, 
@@ -16,6 +16,7 @@ import { paymentAPI, Payment } from '../../../services/paymentAPI';
 import LoadingSpinner from '../../Common/LoadingSpinner';
 import ErrorBoundary from '../../Common/ErrorBoundary';
 import { format } from 'date-fns';
+import { getStatusBadge } from '../../Common/StatusBadge';
 
 const formatDate = (dateString: string) => {
   try {
@@ -35,20 +36,7 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-const getStatusBadgeClass = (status: string) => {
-  switch (status.toLowerCase()) {
-    case 'paid':
-      return 'bg-green-100 text-green-800';
-    case 'pending':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'cancelled':
-      return 'bg-red-100 text-red-800';
-    case 'processing':
-      return 'bg-blue-100 text-blue-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
-};
+ 
 
 const getPaymentTypeBadgeClass = (type: string) => {
   switch (type.toLowerCase()) {
@@ -210,9 +198,7 @@ const PaymentDetail = () => {
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${getPaymentTypeBadgeClass(payment.type)}`}>
                   {payment.type}
                 </span>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeClass(payment.status)}`}>
-                  {payment.status}
-                </span>
+                {getStatusBadge(payment.status)}
               </div>
               <div className="text-2xl font-bold text-gray-800">
                 {formatCurrency(payment.amount)}
@@ -239,28 +225,28 @@ const PaymentDetail = () => {
                   
                   {Object.keys(payment.bankDetails || {}).length > 0 ? (
                     <div className="space-y-4">
-                      {payment.bankDetails.accountName && (
+                      {payment.bankDetails?.accountName && (
                         <div>
                           <div className="text-sm text-gray-500">Account Name</div>
-                          <div className="font-medium">{payment.bankDetails.accountName}</div>
+                          <div className="font-medium">{payment.bankDetails?.accountName}</div>
                         </div>
                       )}
-                      {payment.bankDetails.accountNumber && (
+                      {payment.bankDetails?.accountNumber && (
                         <div>
                           <div className="text-sm text-gray-500">Account Number</div>
-                          <div className="font-medium">{payment.bankDetails.accountNumber}</div>
+                          <div className="font-medium">{payment.bankDetails?.accountNumber}</div>
                         </div>
                       )}
-                      {payment.bankDetails.bankName && (
+                      {payment.bankDetails?.bankName && (
                         <div>
                           <div className="text-sm text-gray-500">Bank Name</div>
-                          <div className="font-medium">{payment.bankDetails.bankName}</div>
+                          <div className="font-medium">{payment.bankDetails?.bankName}</div>
                         </div>
                       )}
-                      {payment.bankDetails.ifscCode && (
+                      {payment.bankDetails?.ifscCode && (
                         <div>
                           <div className="text-sm text-gray-500">IFSC Code</div>
-                          <div className="font-medium">{payment.bankDetails.ifscCode}</div>
+                          <div className="font-medium">{payment.bankDetails?.ifscCode}</div>
                         </div>
                       )}
                     </div>

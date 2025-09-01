@@ -60,15 +60,24 @@ const TrainingForm: React.FC = () => {
   };
 
   const addSkill = () => {
-    if (newSkill.trim()) {
-      setTraining((prev) => ({
-        ...prev,
-        skillsAcquired: [...(prev.skillsAcquired || []), newSkill],
-      }));
-      setNewSkill("");
-    } else {
+    const skill = newSkill.trim();
+    if (!skill) {
       toast.error("Skill name is required");
+      return;
     }
+    setTraining((prev) => {
+      const existing = (prev.skillsAcquired || []);
+      const isDuplicate = existing.some((s: string) => s.trim().toLowerCase() === skill.toLowerCase());
+      if (isDuplicate) {
+        toast.error("Skill already added");
+        return prev;
+      }
+      return {
+        ...prev,
+        skillsAcquired: [...existing, skill],
+      };
+    });
+    setNewSkill("");
   };
 
   const removeSkill = (index: number) => {
@@ -115,7 +124,7 @@ const TrainingForm: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-3 sm:px-4 relative overflow-hidden">
       <FloatingParticles />
 
       <motion.div
@@ -138,7 +147,7 @@ const TrainingForm: React.FC = () => {
             <FaArrowLeft className="mr-2" />
             Back to Trainings
           </button>
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-2">
             {isEditMode ? "Edit Training" : "Create New Training"}
           </h1>
           <p className="text-gray-600">
@@ -247,25 +256,31 @@ const TrainingForm: React.FC = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.8 }}
           >
-            <div className="bg-green-50 border-l-4 border-green-400 p-6 rounded-lg mb-8">
+            <div className="bg-green-50 border-l-4 border-green-400 p-4 sm:p-6 rounded-lg mb-8">
               <h4 className="text-lg font-semibold text-green-800 mb-4 flex items-center">
                 <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
                 Skills Acquired
               </h4>
 
               {/* Add New Skill */}
-              <div className="flex gap-4 mb-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4">
                 <input
                   type="text"
                   placeholder="Skill name"
                   value={newSkill}
                   onChange={(e) => setNewSkill(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addSkill();
+                    }
+                  }}
                   className="flex-1 border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
                 <button
                   type="button"
                   onClick={addSkill}
-                  className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md flex items-center gap-2"
+                  className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md flex items-center justify-center gap-2 w-full sm:w-auto"
                 >
                   <FaPlus /> Add Skill
                 </button>
@@ -318,7 +333,7 @@ const TrainingForm: React.FC = () => {
 
           {/* Submit Button */}
           <motion.div
-            className="flex justify-end"
+            className="flex flex-col sm:flex-row sm:justify-end"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.2 }}
@@ -326,7 +341,7 @@ const TrainingForm: React.FC = () => {
             <motion.button
               type="submit"
               disabled={submitting}
-              className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 px-8 rounded-lg flex items-center gap-2 shadow-lg transition-all duration-300 ${
+              className={`w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 px-8 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-all duration-300 ${
                 submitting
                   ? "opacity-70 cursor-not-allowed"
                   : "hover:shadow-xl hover:scale-105"

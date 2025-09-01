@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { FaEdit, FaArrowLeft, FaDownload, FaCalendarAlt, FaUser, FaChartLine, FaMoneyBillWave } from 'react-icons/fa';
 import { htdAPI, Training } from '../../../services/htdAPI';
 import toast from 'react-hot-toast';
-
+import { getStatusBadge } from '../../Common/StatusBadge';
 
 const TrainingDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -51,35 +51,7 @@ const TrainingDetail: React.FC = () => {
     return `${months} month${months !== 1 ? 's' : ''} ${days} day${days !== 1 ? 's' : ''}`;
   };
 
-  const getStatusBadgeClass = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'completed':
-        return 'bg-blue-100 text-blue-800';
-      case 'on-hold':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getModuleStatusBadgeClass = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'in-progress':
-        return 'bg-blue-100 text-blue-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+  
 
   const handleGenerateReport = async () => {
     try {
@@ -121,8 +93,8 @@ const TrainingDetail: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="px-3 sm:px-4 md:px-6 py-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate('/htd/trainings')}
@@ -134,16 +106,16 @@ const TrainingDetail: React.FC = () => {
             Training Details
           </h1>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">
           <button
             onClick={handleGenerateReport}
-            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md flex items-center gap-2"
+            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <FaDownload /> Generate Report
           </button>
           <button
             onClick={() => navigate(`/htd/trainings/${id}/edit`)}
-            className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-md flex items-center gap-2"
+            className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-md flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <FaEdit /> Edit
           </button>
@@ -151,13 +123,13 @@ const TrainingDetail: React.FC = () => {
       </div>
 
       {/* Training Header */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6">
         <div className="flex flex-col md:flex-row justify-between">
           <div className="mb-4 md:mb-0">
             <h2 className="text-xl font-semibold text-gray-800 mb-2">
               {training.candidateId?.name}'s Training
             </h2>
-            <div className="flex items-center gap-2 text-gray-600 mb-2">
+            <div className="flex flex-wrap items-center gap-2 text-gray-600 mb-2">
               <FaCalendarAlt />
               <span>
                 {formatDate(training.startDate)} - {training.endDate ? formatDate(training.endDate) : 'Present'}
@@ -165,7 +137,7 @@ const TrainingDetail: React.FC = () => {
               <span className="text-gray-400">|</span>
               <span>Duration: {calculateDuration(training.startDate, training.endDate ?? undefined)}</span>
             </div>
-            <div className="flex items-center gap-2 text-gray-600">
+            <div className="flex flex-wrap items-center gap-2 text-gray-600">
               <FaUser />
               <span>{training.candidateId?.email}</span>
               <span className="text-gray-400">|</span>
@@ -173,9 +145,7 @@ const TrainingDetail: React.FC = () => {
             </div>
           </div>
           <div className="flex flex-col items-end">
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeClass(training.status)}`}>
-              {training.status}
-            </span>
+            {getStatusBadge(training.status)}
             <div className="mt-2 flex items-center gap-4">
               <div className="text-right">
                 <div className="text-sm text-gray-500">Average Rating</div>
@@ -225,7 +195,7 @@ const TrainingDetail: React.FC = () => {
 
       {/* Tabs */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-        <div className="flex border-b">
+        <div className="flex border-b overflow-x-auto">
           <button
             className={`px-6 py-3 text-sm font-medium ${activeTab === 'overview' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
             onClick={() => setActiveTab('overview')}
@@ -252,7 +222,7 @@ const TrainingDetail: React.FC = () => {
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div>
@@ -291,8 +261,8 @@ const TrainingDetail: React.FC = () => {
                   <div>
                     <div className="flex justify-between mb-1">
                       <span className="text-sm font-medium text-gray-700">Status</span>
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${getStatusBadgeClass(training.status)}`}>
-                        {training.status}
+                      <span className="text-xs font-medium">
+                        {getStatusBadge(training.status)}
                       </span>
                     </div>
                   </div>
@@ -433,8 +403,8 @@ const TrainingDetail: React.FC = () => {
                             {formatDate(module.startDate)} - {module.endDate ? formatDate(module.endDate) : 'Ongoing'}
                           </div>
                         </div>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getModuleStatusBadgeClass(module.status)}`}>
-                          {module.status}
+                        <span className="text-xs font-medium">
+                          {getStatusBadge(module.status)}
                         </span>
                       </div>
                       <div className="p-4">

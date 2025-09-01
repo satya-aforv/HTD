@@ -3,10 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   FaEdit, 
   FaArrowLeft, 
-  FaDownload, 
   FaCalendarAlt, 
   FaUser, 
-  FaMoneyBillWave, 
   FaFileAlt, 
   FaExclamationTriangle,
   FaFilePdf,
@@ -19,6 +17,7 @@ import { paymentAPI, Payment } from '../../../services/paymentAPI';
 import LoadingSpinner from '../../Common/LoadingSpinner';
 import ErrorBoundary from '../../Common/ErrorBoundary';
 import { format } from 'date-fns';
+import { getStatusBadge } from '../../Common/StatusBadge';
 
 interface PaymentDetailProps {
   enablePrint?: boolean;
@@ -36,9 +35,8 @@ const EnhancedPaymentDetail: React.FC<PaymentDetailProps> = ({ enablePrint = fal
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isPrinting, setIsPrinting] = useState<boolean>(false);
-  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
   const [retryCount, setRetryCount] = useState<number>(0);
-  const retryTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const retryTimerRef = useRef<number | null>(null);
 
   // Check if an error is retryable
   const isRetryableError = useCallback((error: unknown): boolean => {
@@ -56,9 +54,13 @@ const EnhancedPaymentDetail: React.FC<PaymentDetailProps> = ({ enablePrint = fal
     }
     
     // 5xx server errors are retryable
-    if ('status' in error && 
-        typeof (error as any).status === 'number' && 
-        (error as any).status >= 500) {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'status' in (error as Record<string, unknown>) &&
+      typeof (error as Record<string, unknown>).status === 'number' &&
+      ((error as Record<string, unknown>).status as number) >= 500
+    ) {
       return true;
     }
     
@@ -149,7 +151,6 @@ const EnhancedPaymentDetail: React.FC<PaymentDetailProps> = ({ enablePrint = fal
   // Handle online/offline events
   useEffect(() => {
     const handleOnline = () => {
-      setIsOnline(true);
       // If we were offline and there was an error, retry the request
       if (error?.includes('offline') || error?.includes('Connection issue')) {
         fetchPayment();
@@ -157,7 +158,6 @@ const EnhancedPaymentDetail: React.FC<PaymentDetailProps> = ({ enablePrint = fal
     };
     
     const handleOffline = () => {
-      setIsOnline(false);
       setError('You are currently offline. Please check your internet connection.');
     };
     
@@ -175,7 +175,7 @@ const EnhancedPaymentDetail: React.FC<PaymentDetailProps> = ({ enablePrint = fal
         clearTimeout(retryTimerRef.current);
       }
     };
-  }, [fetchPayment]);
+  }, [fetchPayment, error]);
 
   // Handle print functionality
   const handlePrint = useCallback(() => {
@@ -216,21 +216,7 @@ const EnhancedPaymentDetail: React.FC<PaymentDetailProps> = ({ enablePrint = fal
     }
   }, [id]);
 
-  // Get status badge class based on payment status
-  const getStatusBadgeClass = useCallback((status: string) => {
-    switch (status.toLowerCase()) {
-      case 'paid':
-        return 'bg-green-100 text-green-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      case 'processing':
-        return 'bg-blue-100 text-blue-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  }, []);
+  
 
   // Loading state
   const renderLoadingState = () => (
@@ -365,9 +351,7 @@ const EnhancedPaymentDetail: React.FC<PaymentDetailProps> = ({ enablePrint = fal
               </div>
             </div>
             <div className="mt-4 md:mt-0">
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusBadgeClass(payment.status)}`}>
-                {payment.status}
-              </span>
+              {getStatusBadge(payment.status)}
             </div>
           </div>
 

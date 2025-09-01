@@ -1,17 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { FaPlus, FaTrash, FaSave, FaArrowLeft } from 'react-icons/fa';
-import { toast } from 'react-hot-toast';
-import { htdAPI } from '../../../services/htdAPI';
-import FloatingParticles from '../../Common/FloatingParticles';
-import type { Training, Module, Evaluation, Expense } from '../../../types/htd';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { motion } from "framer-motion";
+import { FaPlus, FaTrash, FaSave, FaArrowLeft } from "react-icons/fa";
+import { toast } from "react-hot-toast";
+import { htdAPI } from "../../../services/htdAPI";
+import FloatingParticles from "../../Common/FloatingParticles";
+import type { Training, Module, Evaluation, Expense } from "../../../types/htd";
 
 interface Candidate {
   _id: string;
   name: string;
 }
-
 
 const TrainingForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,19 +20,19 @@ const TrainingForm: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
-  
+
   // Initial training state aligned with backend schema
   const [training, setTraining] = useState<Partial<Training>>({
-    candidateId: '',
-    startDate: '',
-    endDate: '',
-    status: 'ongoing',
+    candidateId: "",
+    startDate: "",
+    endDate: "",
+    status: "ongoing",
     modules: [],
     skillsAcquired: [],
-    notes: ''
+    notes: "",
   });
 
-  const [newSkill, setNewSkill] = useState<string>('');
+  const [newSkill, setNewSkill] = useState<string>("");
 
   // Fetch candidates for dropdown
   useEffect(() => {
@@ -42,8 +41,8 @@ const TrainingForm: React.FC = () => {
         const response = await htdAPI.getCandidates({});
         setCandidates(response.candidates);
       } catch (error) {
-        console.error('Error fetching candidates:', error);
-        toast.error('Failed to fetch candidates');
+        console.error("Error fetching candidates:", error);
+        toast.error("Failed to fetch candidates");
       }
     };
 
@@ -51,35 +50,39 @@ const TrainingForm: React.FC = () => {
     setLoading(false);
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
     const { name, value } = e.target;
-    setTraining(prev => ({ ...prev, [name]: value }));
+    setTraining((prev) => ({ ...prev, [name]: value }));
   };
 
   const addSkill = () => {
     if (newSkill.trim()) {
-      setTraining(prev => ({
+      setTraining((prev) => ({
         ...prev,
-        skillsAcquired: [...(prev.skillsAcquired || []), newSkill]
+        skillsAcquired: [...(prev.skillsAcquired || []), newSkill],
       }));
-      setNewSkill('');
+      setNewSkill("");
     } else {
-      toast.error('Skill name is required');
+      toast.error("Skill name is required");
     }
   };
 
   const removeSkill = (index: number) => {
-    setTraining(prev => ({
+    setTraining((prev) => ({
       ...prev,
-      skillsAcquired: (prev.skillsAcquired || []).filter((_, i) => i !== index)
+      skillsAcquired: (prev.skillsAcquired || []).filter((_, i) => i !== index),
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!training.candidateId || !training.startDate) {
-      toast.error('Please fill in all required fields');
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -88,16 +91,16 @@ const TrainingForm: React.FC = () => {
     try {
       if (isEditMode && id) {
         await htdAPI.updateTraining(id, training);
-        toast.success('Training updated successfully');
+        toast.success("Training updated successfully");
       } else {
         await htdAPI.createTraining(training);
-        toast.success('Training created successfully');
+        toast.success("Training created successfully");
       }
-      
-      navigate('/htd/trainings');
+
+      navigate("/htd/trainings");
     } catch (error: any) {
-      console.error('Error saving training:', error);
-      toast.error(error.response?.data?.message || 'Failed to save training');
+      console.error("Error saving training:", error);
+      toast.error(error.response?.data?.message || "Failed to save training");
     } finally {
       setSubmitting(false);
     }
@@ -114,7 +117,7 @@ const TrainingForm: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4 relative overflow-hidden">
       <FloatingParticles />
-      
+
       <motion.div
         className="max-w-6xl mx-auto relative z-10"
         initial={{ opacity: 0, y: 20 }}
@@ -129,17 +132,19 @@ const TrainingForm: React.FC = () => {
           transition={{ delay: 0.2 }}
         >
           <button
-            onClick={() => navigate('/htd/trainings')}
+            onClick={() => navigate("/htd/trainings")}
             className="mb-4 flex items-center text-blue-600 hover:text-blue-800 transition-colors"
           >
             <FaArrowLeft className="mr-2" />
             Back to Trainings
           </button>
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            {isEditMode ? 'Edit Training' : 'Create New Training'}
+            {isEditMode ? "Edit Training" : "Create New Training"}
           </h1>
           <p className="text-gray-600">
-            {isEditMode ? 'Update training information and track progress' : 'Set up a new training program for candidates'}
+            {isEditMode
+              ? "Update training information and track progress"
+              : "Set up a new training program for candidates"}
           </p>
         </motion.div>
 
@@ -169,14 +174,14 @@ const TrainingForm: React.FC = () => {
                   </label>
                   <select
                     name="candidateId"
-                    value={training.candidateId || ''}
+                    value={training.candidateId || ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                     disabled={isEditMode}
                   >
                     <option value="">Select Candidate</option>
-                    {candidates.map(candidate => (
+                    {candidates.map((candidate) => (
                       <option key={candidate._id} value={candidate._id}>
                         {candidate.name}
                       </option>
@@ -212,7 +217,7 @@ const TrainingForm: React.FC = () => {
                   <input
                     type="date"
                     name="startDate"
-                    value={training.startDate || ''}
+                    value={training.startDate || ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
@@ -227,7 +232,7 @@ const TrainingForm: React.FC = () => {
                   <input
                     type="date"
                     name="endDate"
-                    value={training.endDate || ''}
+                    value={training.endDate || ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -247,7 +252,7 @@ const TrainingForm: React.FC = () => {
                 <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
                 Skills Acquired
               </h4>
-              
+
               {/* Add New Skill */}
               <div className="flex gap-4 mb-4">
                 <input
@@ -268,18 +273,23 @@ const TrainingForm: React.FC = () => {
 
               {/* Skills List */}
               <div className="space-y-2">
-                {(training.skillsAcquired || []).map((skill: string, index: number) => (
-                  <div key={index} className="flex items-center justify-between bg-white p-3 rounded-md border">
-                    <span className="font-medium">{skill}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeSkill(index)}
-                      className="text-red-500 hover:text-red-700"
+                {(training.skillsAcquired || []).map(
+                  (skill: string, index: number) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between bg-white p-3 rounded-md border"
                     >
-                      <FaTrash />
-                    </button>
-                  </div>
-                ))}
+                      <span className="font-medium">{skill}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeSkill(index)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
+                  )
+                )}
               </div>
             </div>
           </motion.div>
@@ -297,7 +307,7 @@ const TrainingForm: React.FC = () => {
               </h4>
               <textarea
                 name="notes"
-                value={training.notes || ''}
+                value={training.notes || ""}
                 onChange={handleChange}
                 rows={4}
                 className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-gray-500"
@@ -316,11 +326,15 @@ const TrainingForm: React.FC = () => {
             <motion.button
               type="submit"
               disabled={submitting}
-              className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 px-8 rounded-lg flex items-center gap-2 shadow-lg transition-all duration-300 ${submitting ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-xl hover:scale-105'}`}
+              className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 px-8 rounded-lg flex items-center gap-2 shadow-lg transition-all duration-300 ${
+                submitting
+                  ? "opacity-70 cursor-not-allowed"
+                  : "hover:shadow-xl hover:scale-105"
+              }`}
               whileHover={{ scale: submitting ? 1 : 1.05 }}
               whileTap={{ scale: submitting ? 1 : 0.95 }}
             >
-              <FaSave /> {submitting ? 'Saving...' : 'Save Training'}
+              <FaSave /> {submitting ? "Saving..." : "Save Training"}
             </motion.button>
           </motion.div>
         </motion.form>

@@ -1,25 +1,24 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Search, Plus, Filter, Eye, Edit, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-hot-toast';
-import { htdAPI, Candidate } from '../../../services/htdAPI';
-import { getErrorMessage } from '../../../lib/utils';
+import React, { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Search, Plus, Filter, Eye, Edit, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
+import { htdAPI, Candidate } from "../../../services/htdAPI";
+import { getErrorMessage } from "../../../lib/utils";
 
 const CandidatesList: React.FC = () => {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [skillFilter, setSkillFilter] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [skillFilter, setSkillFilter] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const itemsPerPage = 10;
-
 
   const fetchCandidates = useCallback(async () => {
     try {
@@ -27,7 +26,7 @@ const CandidatesList: React.FC = () => {
       const response = await htdAPI.getCandidates({
         page: currentPage,
         limit: itemsPerPage,
-        status: statusFilter !== 'all' ? statusFilter : undefined,
+        status: statusFilter !== "all" ? statusFilter : undefined,
         search: searchTerm || undefined,
         skill: skillFilter || undefined,
       });
@@ -35,8 +34,8 @@ const CandidatesList: React.FC = () => {
       setTotalPages(response?.totalPages || 1);
       setTotalItems(response?.totalCandidates || 0);
     } catch (err: unknown) {
-      const errorMessage = getErrorMessage(err, 'Failed to fetch candidates');
-      console.error('Error fetching candidates:', err);
+      const errorMessage = getErrorMessage(err, "Failed to fetch candidates");
+      console.error("Error fetching candidates:", err);
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -47,23 +46,25 @@ const CandidatesList: React.FC = () => {
     fetchCandidates();
   }, [fetchCandidates]);
 
-
-  console.log('Candidates state:', candidates);
-  console.log('Loading state:', loading);
-
-  const handleDelete = useCallback(async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this candidate?')) {
-      try {
-        await htdAPI.deleteCandidate(id);
-        toast.success('Candidate deleted successfully');
-        fetchCandidates();
-      } catch (error: unknown) {
-        const errorMessage = getErrorMessage(error, 'Failed to delete candidate');
-        console.error('Error deleting candidate:', error);
-        toast.error(errorMessage);
+  const handleDelete = useCallback(
+    async (id: string) => {
+      if (window.confirm("Are you sure you want to delete this candidate?")) {
+        try {
+          await htdAPI.deleteCandidate(id);
+          toast.success("Candidate deleted successfully");
+          fetchCandidates();
+        } catch (error: unknown) {
+          const errorMessage = getErrorMessage(
+            error,
+            "Failed to delete candidate"
+          );
+          console.error("Error deleting candidate:", error);
+          toast.error(errorMessage);
+        }
       }
-    }
-  }, [fetchCandidates]);
+    },
+    [fetchCandidates]
+  );
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -128,7 +129,9 @@ const CandidatesList: React.FC = () => {
               placeholder="Search by name or email..."
               className="pl-8 w-full md:w-[300px]"
               value={searchTerm}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setSearchTerm(e.target.value)
+              }
             />
           </div>
 
@@ -156,7 +159,9 @@ const CandidatesList: React.FC = () => {
               placeholder="Filter by skill..."
               className="pl-8 w-full md:w-[300px]"
               value={skillFilter}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSkillFilter(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setSkillFilter(e.target.value)
+              }
             />
           </div>
 
@@ -246,18 +251,23 @@ const CandidatesList: React.FC = () => {
                           candidate?.status
                         )}`}
                       >
-                        {candidate?.status?.replace(/_/g, ' ') || 'N/A'}
+                        {candidate?.status?.replace(/_/g, " ") || "N/A"}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div>IT: {candidate?.totalITExperience ?? 0} years</div>
-                      <div>Non-IT: {candidate?.totalNonITExperience ?? 0} years</div>
+                      <div>
+                        Non-IT: {candidate?.totalNonITExperience ?? 0} years
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-1">
                         {candidate?.skills?.slice(0, 3).map((skill, idx) => (
-                          <span key={idx} className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800 mr-1 mb-1">
-                            {skill?.name || 'Unnamed Skill'}
+                          <span
+                            key={idx}
+                            className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800 mr-1 mb-1"
+                          >
+                            {skill?.name || "Unnamed Skill"}
                           </span>
                         ))}
                         {candidate?.skills && candidate.skills.length > 3 && (
@@ -265,22 +275,29 @@ const CandidatesList: React.FC = () => {
                             +{candidate.skills.length - 3}
                           </span>
                         )}
-                        {(!candidate?.skills || candidate.skills.length === 0) && (
-                          <span className="text-xs text-gray-500">No skills</span>
+                        {(!candidate?.skills ||
+                          candidate.skills.length === 0) && (
+                          <span className="text-xs text-gray-500">
+                            No skills
+                          </span>
                         )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">
                         <button
-                          onClick={() => navigate(`/htd/candidates/${candidate._id}`)}
+                          onClick={() =>
+                            navigate(`/htd/candidates/${candidate._id}`)
+                          }
                           className="text-blue-600 hover:text-blue-900 p-1 rounded"
                           title="View Details"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => navigate(`/htd/candidates/${candidate._id}/edit`)}
+                          onClick={() =>
+                            navigate(`/htd/candidates/${candidate._id}/edit`)
+                          }
                           className="text-green-600 hover:text-green-900 p-1 rounded"
                           title="Edit"
                         >
@@ -309,13 +326,12 @@ const CandidatesList: React.FC = () => {
                   Showing{" "}
                   <span className="font-medium">
                     {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}
-                  </span>
-                  {" "}-{" "}
+                  </span>{" "}
+                  -{" "}
                   <span className="font-medium">
                     {Math.min(currentPage * itemsPerPage, totalItems)}
-                  </span>
-                  {" "}of{" "}
-                  <span className="font-medium">{totalItems}</span> results
+                  </span>{" "}
+                  of <span className="font-medium">{totalItems}</span> results
                 </p>
               </div>
               <div>

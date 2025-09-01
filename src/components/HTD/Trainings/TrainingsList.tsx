@@ -22,14 +22,14 @@ const TrainingsList: React.FC = () => {
   const [sortDirection, setSortDirection] = useState<string>("desc");
 
   // Memoize fetchTrainings to prevent infinite re-renders
-    const fetchTrainings = useCallback(async () => {
+  const fetchTrainings = useCallback(async () => {
     try {
       setLoading(true);
       const response = await htdAPI.getTrainings({
         page: currentPage,
         limit: 10,
         search: searchTerm.trim(),
-        status: filterStatus as Training['status'],
+        status: filterStatus as Training["status"],
         sortField,
         sortDirection,
       });
@@ -41,9 +41,12 @@ const TrainingsList: React.FC = () => {
       // Client-side sorting as backend may not support it yet
       if (sortField) {
         trainingsData = [...trainingsData].sort((a, b) => {
-          const getNestedValue = (obj: Record<string, unknown>, path: string): unknown => {
-            return path.split('.').reduce((acc: unknown, key: string) => {
-              if (acc && typeof acc === 'object' && key in acc) {
+          const getNestedValue = (
+            obj: Record<string, unknown>,
+            path: string
+          ): unknown => {
+            return path.split(".").reduce((acc: unknown, key: string) => {
+              if (acc && typeof acc === "object" && key in acc) {
                 return (acc as Record<string, unknown>)[key];
               }
               return null;
@@ -56,15 +59,17 @@ const TrainingsList: React.FC = () => {
           if (valA === null || valA === undefined) return 1;
           if (valB === null || valB === undefined) return -1;
 
-          if (typeof valA === 'string' && typeof valB === 'string') {
-            return sortDirection === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+          if (typeof valA === "string" && typeof valB === "string") {
+            return sortDirection === "asc"
+              ? valA.localeCompare(valB)
+              : valB.localeCompare(valA);
           }
 
           if (valA < valB) {
-            return sortDirection === 'asc' ? -1 : 1;
+            return sortDirection === "asc" ? -1 : 1;
           }
           if (valA > valB) {
-            return sortDirection === 'asc' ? 1 : -1;
+            return sortDirection === "asc" ? 1 : -1;
           }
           return 0;
         });
@@ -85,6 +90,61 @@ const TrainingsList: React.FC = () => {
   useEffect(() => {
     fetchTrainings();
   }, [fetchTrainings]);
+
+  const getStatusBadge = (status: string) => {
+    const statusLower = status.toLowerCase();
+
+    if (
+      statusLower.includes("pending") ||
+      statusLower.includes("processing") ||
+      statusLower.includes("IN_PROGRESS")
+    ) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+          {status}
+        </span>
+      );
+    }
+
+    if (
+      statusLower.includes("active") ||
+      statusLower.includes("completed") ||
+      statusLower.includes("success")
+    ) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          {status}
+        </span>
+      );
+    }
+
+    if (
+      statusLower.includes("declined") ||
+      statusLower.includes("rejected") ||
+      statusLower.includes("failed")
+    ) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+          {status}
+        </span>
+      );
+    }
+
+    if (statusLower.includes("refunded") || statusLower.includes("cancelled")) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+          {status}
+        </span>
+      );
+    }
+
+    // Default for unknown status
+    return (
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+        {status}
+      </span>
+    );
+  };
 
   const handleDelete = async (id?: string) => {
     if (!id) {
@@ -172,6 +232,10 @@ const TrainingsList: React.FC = () => {
         return "bg-yellow-100 text-yellow-800";
       case "cancelled":
         return "bg-red-100 text-red-800";
+      case "in_progress":
+        return "bg-orange-100 text-orange-800";
+      case "pending":
+        return "bg-gray-100 text-gray-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -299,12 +363,14 @@ const TrainingsList: React.FC = () => {
                   <tr key={training._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        {training?.candidateId?.name || 'N/A'}
+                        {training?.candidateId?.name || "N/A"}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">
-                        {training?.startDate ? formatDate(training.startDate) : 'N/A'}
+                        {training?.startDate
+                          ? formatDate(training.startDate)
+                          : "N/A"}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -321,7 +387,7 @@ const TrainingsList: React.FC = () => {
                           training?.status
                         )}`}
                       >
-                        {training?.status || 'Unknown'}
+                        {training?.status || "Unknown"}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -333,21 +399,23 @@ const TrainingsList: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">
-                        $
-                        {training?.totalExpenses?.toLocaleString() || '0'}
+                        ${training?.totalExpenses?.toLocaleString() || "0"}
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-1">
-                        {training?.skillsAcquired && training.skillsAcquired.length > 0 ? (
-                          training.skillsAcquired.slice(0, 3).map((skill: string, index: number) => (
-                            <span
-                              key={index}
-                              className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
-                            >
-                              {skill}
-                            </span>
-                          ))
+                        {training?.skillsAcquired &&
+                        training.skillsAcquired.length > 0 ? (
+                          training.skillsAcquired
+                            .slice(0, 3)
+                            .map((skill: string, index: number) => (
+                              <span
+                                key={index}
+                                className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
+                              >
+                                {skill}
+                              </span>
+                            ))
                         ) : (
                           <span className="text-sm text-gray-500">None</span>
                         )}

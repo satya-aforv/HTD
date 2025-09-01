@@ -1,15 +1,24 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { FaSpinner, FaPlus, FaSearch, FaFilter, FaFileDownload, FaEdit, FaTrash, FaEye } from 'react-icons/fa';
-import { toast } from 'react-hot-toast';
-import { htdAPI, Payment, Candidate } from '../../../services/htdAPI';
-import { getErrorMessage } from '../../../lib/utils';
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  FaSpinner,
+  FaPlus,
+  FaSearch,
+  FaFilter,
+  FaFileDownload,
+  FaEdit,
+  FaTrash,
+  FaEye,
+} from "react-icons/fa";
+import { toast } from "react-hot-toast";
+import { htdAPI, Payment, Candidate } from "../../../services/htdAPI";
+import { getErrorMessage } from "../../../lib/utils";
 
 const DEFAULT_PAGE_SIZE = 10;
 
 const PaymentsList: React.FC = () => {
   const navigate = useNavigate();
-  
+
   // State management
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -17,84 +26,92 @@ const PaymentsList: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
   const [showFilters, setShowFilters] = useState<boolean>(false);
-  
+
   // Filter states
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [filterType, setFilterType] = useState<string>('');
-  const [filterStatus, setFilterStatus] = useState<string>('');
-  const [filterMonth, setFilterMonth] = useState<string>('');
-  const [filterYear, setFilterYear] = useState<string>('');
-  
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [filterType, setFilterType] = useState<string>("");
+  const [filterStatus, setFilterStatus] = useState<string>("");
+  const [filterMonth, setFilterMonth] = useState<string>("");
+  const [filterYear, setFilterYear] = useState<string>("");
+
   // Sort states
-  const [sortField, setSortField] = useState<keyof Payment>('paymentDate');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  
+  const [sortField, setSortField] = useState<keyof Payment>("paymentDate");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+
   // Calculate total pages
   const totalPages = useMemo(() => {
     return Math.ceil(totalPayments / pageSize) || 1;
   }, [totalPayments, pageSize]);
-  
+
   // Format date for display
   const formatDate = useCallback((dateString?: string): string => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return "N/A";
     try {
       const date = new Date(dateString);
-      return isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
+      return isNaN(date.getTime())
+        ? "N/A"
+        : date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          });
     } catch (error) {
-      console.error('Error formatting date:', error);
-      return 'N/A';
+      console.error("Error formatting date:", error);
+      return "N/A";
     }
   }, []);
 
   // Get badge class for payment type
   const getPaymentTypeBadgeClass = useCallback((type: string): string => {
     switch (type) {
-      case 'registration':
-        return 'bg-blue-100 text-blue-800';
-      case 'tuition':
-        return 'bg-green-100 text-green-800';
-      case 'certification':
-        return 'bg-purple-100 text-purple-800';
-      case 'other':
-        return 'bg-gray-100 text-gray-800';
+      case "registration":
+        return "bg-blue-100 text-blue-800";
+      case "tuition":
+        return "bg-green-100 text-green-800";
+      case "certification":
+        return "bg-purple-100 text-purple-800";
+      case "other":
+        return "bg-gray-100 text-gray-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   }, []);
 
   // Get badge class for status
   const getStatusBadgeClass = useCallback((status: string): string => {
     switch (status) {
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'failed':
-        return 'bg-red-100 text-red-800';
-      case 'refunded':
-        return 'bg-purple-100 text-purple-800';
+      case "completed":
+        return "bg-green-100 text-green-800";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "failed":
+        return "bg-red-100 text-red-800";
+      case "refunded":
+        return "bg-purple-100 text-purple-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   }, []);
 
   // Get candidate name safely
-  const getCandidateName = useCallback((candidateId: Candidate | string): string => {
-    if (!candidateId) return 'N/A';
-    if (typeof candidateId === 'string') return 'Unknown Candidate';
-    return candidateId.name || 'N/A';
-  }, []);
+  const getCandidateName = useCallback(
+    (candidateId: Candidate | string): string => {
+      if (!candidateId) return "N/A";
+      if (typeof candidateId === "string") return "Unknown Candidate";
+      return candidateId.name || "N/A";
+    },
+    []
+  );
 
   // Get candidate email safely
-  const getCandidateEmail = useCallback((candidateId: Candidate | string): string => {
-    if (!candidateId) return '';
-    if (typeof candidateId === 'string') return '';
-    return candidateId.email || '';
-  }, []);
+  const getCandidateEmail = useCallback(
+    (candidateId: Candidate | string): string => {
+      if (!candidateId) return "";
+      if (typeof candidateId === "string") return "";
+      return candidateId.email || "";
+    },
+    []
+  );
 
   const fetchPayments = useCallback(async (): Promise<void> => {
     try {
@@ -114,7 +131,9 @@ const PaymentsList: React.FC = () => {
       if (response?.payments) {
         setPayments(response.payments);
         setTotalPayments(response.totalCount || 0);
-        const calculatedTotalPages = Math.ceil((response.totalCount || 0) / pageSize);
+        const calculatedTotalPages = Math.ceil(
+          (response.totalCount || 0) / pageSize
+        );
         if (currentPage > calculatedTotalPages && calculatedTotalPages > 0) {
           setCurrentPage(calculatedTotalPages);
         }
@@ -123,20 +142,33 @@ const PaymentsList: React.FC = () => {
         setTotalPayments(0);
       }
     } catch (error: unknown) {
-      const errorMessage = getErrorMessage(error, 'Failed to fetch payments');
-      console.error('Error fetching payments:', error);
+      const errorMessage = getErrorMessage(error, "Failed to fetch payments");
+      console.error("Error fetching payments:", error);
       toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, pageSize, sortField, sortDirection, searchTerm, filterType, filterStatus, filterMonth, filterYear]);
+  }, [
+    currentPage,
+    pageSize,
+    sortField,
+    sortDirection,
+    searchTerm,
+    filterType,
+    filterStatus,
+    filterMonth,
+    filterYear,
+  ]);
 
   // Handle search
-  const handleSearch = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    setCurrentPage(1);
-    fetchPayments();
-  }, [fetchPayments]);
+  const handleSearch = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      setCurrentPage(1);
+      fetchPayments();
+    },
+    [fetchPayments]
+  );
 
   // Handle filter apply
   const handleFilterApply = useCallback(() => {
@@ -147,38 +179,95 @@ const PaymentsList: React.FC = () => {
 
   // Handle filter reset
   const handleFilterReset = useCallback(() => {
-    setSearchTerm('');
-    setFilterType('');
-    setFilterStatus('');
-    setFilterMonth('');
-    setFilterYear('');
+    setSearchTerm("");
+    setFilterType("");
+    setFilterStatus("");
+    setFilterMonth("");
+    setFilterYear("");
     setCurrentPage(1);
   }, []);
 
   // Handle sort
-  const handleSort = useCallback((field: keyof Payment) => {
-    setSortField(field);
-    setSortDirection(
-      sortField === field && sortDirection === 'asc' ? 'desc' : 'asc'
+  const handleSort = useCallback(
+    (field: keyof Payment) => {
+      setSortField(field);
+      setSortDirection(
+        sortField === field && sortDirection === "asc" ? "desc" : "asc"
+      );
+      setCurrentPage(1);
+    },
+    [sortField, sortDirection]
+  );
+
+  const handleDeletePayment = useCallback(
+    async (id: string) => {
+      if (!window.confirm("Are you sure you want to delete this payment?")) {
+        return;
+      }
+
+      try {
+        await htdAPI.deletePayment(id);
+        toast.success("Payment deleted successfully");
+        await fetchPayments(); // Refetch to update the list
+      } catch (error: unknown) {
+        const errorMessage = getErrorMessage(error, "Failed to delete payment");
+        console.error("Error deleting payment:", error);
+        toast.error(errorMessage);
+      }
+    },
+    [fetchPayments]
+  );
+
+  const getStatusBadge = (status: string) => {
+    const statusLower = status.toLowerCase();
+
+    if (statusLower.includes("pending") || statusLower.includes("processing")) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+          {status}
+        </span>
+      );
+    }
+
+    if (
+      statusLower.includes("active") ||
+      statusLower.includes("completed") ||
+      statusLower.includes("success")
+    ) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          {status}
+        </span>
+      );
+    }
+
+    if (
+      statusLower.includes("declined") ||
+      statusLower.includes("rejected") ||
+      statusLower.includes("failed")
+    ) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+          {status}
+        </span>
+      );
+    }
+
+    if (statusLower.includes("refunded") || statusLower.includes("cancelled")) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+          {status}
+        </span>
+      );
+    }
+
+    // Default for unknown status
+    return (
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+        {status}
+      </span>
     );
-    setCurrentPage(1);
-  }, [sortField, sortDirection]);
-
-  const handleDeletePayment = useCallback(async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this payment?')) {
-      return;
-    }
-
-    try {
-      await htdAPI.deletePayment(id);
-      toast.success('Payment deleted successfully');
-      await fetchPayments(); // Refetch to update the list
-    } catch (error: unknown) {
-      const errorMessage = getErrorMessage(error, 'Failed to delete payment');
-      console.error('Error deleting payment:', error);
-      toast.error(errorMessage);
-    }
-  }, [fetchPayments]);
+  };
 
   const handleExportPayments = useCallback(async () => {
     try {
@@ -194,9 +283,12 @@ const PaymentsList: React.FC = () => {
       });
 
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', `payments-${new Date().toISOString().split('T')[0]}.xlsx`);
+      link.setAttribute(
+        "download",
+        `payments-${new Date().toISOString().split("T")[0]}.xlsx`
+      );
       document.body.appendChild(link);
       link.click();
 
@@ -205,15 +297,23 @@ const PaymentsList: React.FC = () => {
         link.remove();
       }, 100);
 
-      toast.success('Export started successfully');
+      toast.success("Export started successfully");
     } catch (error: unknown) {
-      const errorMessage = getErrorMessage(error, 'Failed to export payments');
-      console.error('Error exporting payments:', error);
+      const errorMessage = getErrorMessage(error, "Failed to export payments");
+      console.error("Error exporting payments:", error);
       toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
-  }, [searchTerm, filterType, filterStatus, filterMonth, filterYear, sortField, sortDirection]);
+  }, [
+    searchTerm,
+    filterType,
+    filterStatus,
+    filterMonth,
+    filterYear,
+    sortField,
+    sortDirection,
+  ]);
 
   // Use effect to fetch payments on mount and when dependencies change
   useEffect(() => {
@@ -251,11 +351,17 @@ const PaymentsList: React.FC = () => {
               d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
             />
           </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No payments</h3>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">
+            No payments
+          </h3>
           <p className="mt-1 text-sm text-gray-500">
-            {searchTerm || filterStatus || filterType || filterMonth || filterYear
-              ? 'No payments match your filters.'
-              : 'Get started by creating a new payment.'}
+            {searchTerm ||
+            filterStatus ||
+            filterType ||
+            filterMonth ||
+            filterYear
+              ? "No payments match your filters."
+              : "Get started by creating a new payment."}
           </p>
           <div className="mt-6">
             <Link
@@ -265,7 +371,11 @@ const PaymentsList: React.FC = () => {
               <FaPlus className="-ml-1 mr-2 h-5 w-5" />
               New Payment
             </Link>
-            {(searchTerm || filterStatus || filterType || filterMonth || filterYear) && (
+            {(searchTerm ||
+              filterStatus ||
+              filterType ||
+              filterMonth ||
+              filterYear) && (
               <button
                 type="button"
                 onClick={handleFilterReset}
@@ -292,7 +402,7 @@ const PaymentsList: React.FC = () => {
             <FaFileDownload /> Export
           </button>
           <button
-            onClick={() => navigate('/htd/payments/new')}
+            onClick={() => navigate("/htd/payments/new")}
             className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md flex items-center gap-2"
           >
             <FaPlus /> Add Payment
@@ -311,7 +421,9 @@ const PaymentsList: React.FC = () => {
                 className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e as React.FormEvent)}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && handleSearch(e as React.FormEvent)
+                }
               />
               <FaSearch className="absolute left-3 top-3 text-gray-400" />
             </div>
@@ -336,7 +448,9 @@ const PaymentsList: React.FC = () => {
         {showFilters && (
           <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Payment Type</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Payment Type
+              </label>
               <select
                 className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={filterType}
@@ -350,7 +464,9 @@ const PaymentsList: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Status
+              </label>
               <select
                 className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={filterStatus}
@@ -364,7 +480,9 @@ const PaymentsList: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Month</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Month
+              </label>
               <select
                 className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={filterMonth}
@@ -386,15 +504,22 @@ const PaymentsList: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Year
+              </label>
               <select
                 className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={filterYear}
                 onChange={(e) => setFilterYear(e.target.value)}
               >
                 <option value="">All Years</option>
-                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                  <option key={year} value={year.toString()}>{year}</option>
+                {Array.from(
+                  { length: 5 },
+                  (_, i) => new Date().getFullYear() - i
+                ).map((year) => (
+                  <option key={year} value={year.toString()}>
+                    {year}
+                  </option>
                 ))}
               </select>
             </div>
@@ -425,64 +550,79 @@ const PaymentsList: React.FC = () => {
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort('candidateId')}
+                  onClick={() => handleSort("candidateId")}
                 >
                   Candidate
-                  {sortField === 'candidateId' && (
-                    <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  {sortField === "candidateId" && (
+                    <span className="ml-1">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
                   )}
                 </th>
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort('type')}
+                  onClick={() => handleSort("type")}
                 >
                   Type
-                  {sortField === 'type' && (
-                    <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  {sortField === "type" && (
+                    <span className="ml-1">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
                   )}
                 </th>
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort('amount')}
+                  onClick={() => handleSort("amount")}
                 >
                   Amount
-                  {sortField === 'amount' && (
-                    <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  {sortField === "amount" && (
+                    <span className="ml-1">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
                   )}
                 </th>
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort('month')}
+                  onClick={() => handleSort("month")}
                 >
                   Month/Year
-                  {sortField === 'month' && (
-                    <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  {sortField === "month" && (
+                    <span className="ml-1">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
                   )}
                 </th>
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort('paymentDate')}
+                  onClick={() => handleSort("paymentDate")}
                 >
                   Date
-                  {sortField === 'paymentDate' && (
-                    <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  {sortField === "paymentDate" && (
+                    <span className="ml-1">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
                   )}
                 </th>
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort('status')}
+                  onClick={() => handleSort("status")}
                 >
                   Status
-                  {sortField === 'status' && (
-                    <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  {sortField === "status" && (
+                    <span className="ml-1">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
                   )}
                 </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Actions
                 </th>
               </tr>
@@ -498,7 +638,10 @@ const PaymentsList: React.FC = () => {
                 </tr>
               ) : payments.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                  <td
+                    colSpan={7}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
                     No payment records found
                   </td>
                 </tr>
@@ -516,35 +659,41 @@ const PaymentsList: React.FC = () => {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getPaymentTypeBadgeClass(payment?.type)}`}>
-                        {payment?.type || 'Unknown'}
+                      <span
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getPaymentTypeBadgeClass(
+                          payment?.type
+                        )}`}
+                      >
+                        {payment?.type || "Unknown"}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      ${payment?.amount?.toLocaleString() || '0.00'}
+                      ${payment?.amount?.toLocaleString() || "0.00"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {payment?.month || 'N/A'} {payment?.year || ''}
+                      {payment?.month || "N/A"} {payment?.year || ""}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDate(payment?.paymentDate)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(payment?.status)}`}>
-                        {payment?.status || 'Unknown'}
-                      </span>
+                      {getStatusBadge(payment?.status || "Unknown")}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">
                         <button
-                          onClick={() => navigate(`/htd/payments/${payment?._id}`)}
+                          onClick={() =>
+                            navigate(`/htd/payments/${payment?._id}`)
+                          }
                           className="text-blue-600 hover:text-blue-900 p-1 rounded"
                           title="View Details"
                         >
                           <FaEye />
                         </button>
                         <button
-                          onClick={() => navigate(`/htd/payments/${payment?._id}/edit`)}
+                          onClick={() =>
+                            navigate(`/htd/payments/${payment?._id}/edit`)
+                          }
                           className="text-green-600 hover:text-green-900 p-1 rounded"
                           title="Edit"
                         >
@@ -573,14 +722,24 @@ const PaymentsList: React.FC = () => {
               <button
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
-                className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                  currentPage === 1
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-gray-700 hover:bg-gray-50"
+                }`}
               >
                 Previous
               </button>
               <button
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                onClick={() =>
+                  setCurrentPage(Math.min(totalPages, currentPage + 1))
+                }
                 disabled={currentPage === totalPages}
-                className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+                className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                  currentPage === totalPages
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-gray-700 hover:bg-gray-50"
+                }`}
               >
                 Next
               </button>
@@ -588,11 +747,16 @@ const PaymentsList: React.FC = () => {
             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-gray-700">
-                  Showing <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> to{' '}
+                  Showing{" "}
+                  <span className="font-medium">
+                    {(currentPage - 1) * pageSize + 1}
+                  </span>{" "}
+                  to{" "}
                   <span className="font-medium">
                     {Math.min(currentPage * pageSize, totalPayments)}
-                  </span>{' '}
-                  of <span className="font-medium">{totalPayments}</span> results
+                  </span>{" "}
+                  of <span className="font-medium">{totalPayments}</span>{" "}
+                  results
                 </p>
               </div>
               <div>
@@ -615,11 +779,18 @@ const PaymentsList: React.FC = () => {
                 </div>
               </div>
               <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <nav
+                  className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                  aria-label="Pagination"
+                >
                   <button
                     onClick={() => setCurrentPage(1)}
                     disabled={currentPage === 1}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
+                    className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
+                      currentPage === 1
+                        ? "text-gray-300 cursor-not-allowed"
+                        : "text-gray-500 hover:bg-gray-50"
+                    }`}
                   >
                     <span className="sr-only">First</span>
                     <span>«</span>
@@ -627,12 +798,16 @@ const PaymentsList: React.FC = () => {
                   <button
                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
-                    className={`relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
+                    className={`relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium ${
+                      currentPage === 1
+                        ? "text-gray-300 cursor-not-allowed"
+                        : "text-gray-500 hover:bg-gray-50"
+                    }`}
                   >
                     <span className="sr-only">Previous</span>
                     <span>‹</span>
                   </button>
-                  
+
                   {/* Page numbers */}
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     let pageNum;
@@ -645,22 +820,32 @@ const PaymentsList: React.FC = () => {
                     } else {
                       pageNum = currentPage - 2 + i;
                     }
-                    
+
                     return (
                       <button
                         key={pageNum}
                         onClick={() => setCurrentPage(pageNum)}
-                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === pageNum ? 'z-10 bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}`}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                          currentPage === pageNum
+                            ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                            : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                        }`}
                       >
                         {pageNum}
                       </button>
                     );
                   })}
-                  
+
                   <button
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    onClick={() =>
+                      setCurrentPage(Math.min(totalPages, currentPage + 1))
+                    }
                     disabled={currentPage === totalPages}
-                    className={`relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
+                    className={`relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium ${
+                      currentPage === totalPages
+                        ? "text-gray-300 cursor-not-allowed"
+                        : "text-gray-500 hover:bg-gray-50"
+                    }`}
                   >
                     <span className="sr-only">Next</span>
                     <span>›</span>
@@ -668,7 +853,11 @@ const PaymentsList: React.FC = () => {
                   <button
                     onClick={() => setCurrentPage(totalPages)}
                     disabled={currentPage === totalPages}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
+                    className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
+                      currentPage === totalPages
+                        ? "text-gray-300 cursor-not-allowed"
+                        : "text-gray-500 hover:bg-gray-50"
+                    }`}
                   >
                     <span className="sr-only">Last</span>
                     <span>»</span>

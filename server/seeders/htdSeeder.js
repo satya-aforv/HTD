@@ -56,7 +56,7 @@ const trainingsData = [
         startDate: new Date('2023-01-15'),
         endDate: new Date('2023-02-14'),
         status: 'COMPLETED',
-        trainerEmail: 'admin@aforv.com'
+        trainerEmail: 'admin@matrixmedys.com'
       },
       {
         name: 'Advanced Node.js',
@@ -66,7 +66,7 @@ const trainingsData = [
         startDate: new Date('2023-02-15'),
         endDate: new Date('2023-03-31'),
         status: 'IN_PROGRESS',
-        trainerEmail: 'admin@aforv.com'
+        trainerEmail: 'admin@matrixmedys.com'
       }
     ]
   }
@@ -101,12 +101,12 @@ const seedHTD = async () => {
   try {
     await connectDB();
 
-    let adminUser = await User.findOne({ email: 'admin@aforv.com' });
+    let adminUser = await User.findOne({ email: 'admin@matrixmedys.com' });
     if (!adminUser) {
       console.log('Admin user not found. Creating admin user...');
       adminUser = await User.create({
         name: 'System Administrator',
-        email: 'admin@aforv.com',
+        email: 'admin@matrixmedys.com',
         password: 'Admin@123', // The model will hash this
         contactNumber: '9809897867',
         gender: 'MALE',

@@ -89,10 +89,13 @@ const CandidatesList: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h2 className="text-2xl font-bold tracking-tight">Candidates</h2>
-        <Button asChild>
-          <Link to="/htd/candidates/new" className="flex items-center">
+        <Button asChild className="w-full sm:w-auto">
+          <Link
+            to="/htd/candidates/new"
+            className="flex items-center justify-center"
+          >
             <Plus className="mr-2 h-4 w-4" /> Add Candidate
           </Link>
         </Button>
@@ -109,7 +112,7 @@ const CandidatesList: React.FC = () => {
             <Input
               type="search"
               placeholder="Search by name or email..."
-              className="pl-8 w-full md:w-[300px]"
+              className="pl-8 w-full"
               value={searchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setSearchTerm(e.target.value)
@@ -123,7 +126,7 @@ const CandidatesList: React.FC = () => {
               <select
                 value={statusFilter}
                 onChange={handleStatusChange}
-                className="flex h-9 w-[180px] items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 pl-8"
+                className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 pl-8"
               >
                 <option value="all">All Status</option>
                 <option value="new">New</option>
@@ -139,7 +142,7 @@ const CandidatesList: React.FC = () => {
             <Input
               type="text"
               placeholder="Filter by skill..."
-              className="pl-8 w-full md:w-[300px]"
+              className="pl-8 w-full"
               value={skillFilter}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setSkillFilter(e.target.value)
@@ -147,7 +150,7 @@ const CandidatesList: React.FC = () => {
             />
           </div>
 
-          <div className="flex space-x-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full">
             <button
               type="submit"
               className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition duration-300 ease-in-out flex-1"
@@ -184,22 +187,22 @@ const CandidatesList: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">
                     Contact
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                     Experience
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                     Skills
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -207,19 +210,35 @@ const CandidatesList: React.FC = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {candidates.map((candidate) => (
                   <tr key={candidate._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4">
                       <div className="flex items-center">
                         <div>
                           <div className="text-sm font-medium text-gray-900">
                             {candidate.name}
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {candidate.highestQualification}
+                          <div className="text-sm text-gray-500 sm:hidden">
+                            {candidate.email}
+                          </div>
+                          <div className="text-xs text-gray-500 sm:hidden">
+                            {candidate.phone}
+                          </div>
+                          <div className="text-sm text-gray-500 md:hidden">
+                            IT: {candidate?.totalITExperience ?? 0}y
+                          </div>
+                          <div className="text-xs text-gray-500 md:hidden">
+                            Skills:{" "}
+                            {candidate?.skills
+                              ?.slice(0, 2)
+                              .map((s) => s.name)
+                              .join(", ")}
+                            {candidate?.skills &&
+                              candidate.skills.length > 2 &&
+                              "..."}
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap hidden sm:table-cell">
                       <div className="text-sm text-gray-900">
                         {candidate.email}
                       </div>
@@ -227,21 +246,21 @@ const CandidatesList: React.FC = () => {
                         {candidate.phone}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                       {getStatusBadge(candidate?.status || "N/A")}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
                       <div>IT: {candidate?.totalITExperience ?? 0} years</div>
                       <div>
                         Non-IT: {candidate?.totalNonITExperience ?? 0} years
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4 hidden lg:table-cell">
                       <div className="flex flex-wrap gap-1">
                         {candidate?.skills?.slice(0, 3).map((skill, idx) => (
                           <span
                             key={idx}
-                            className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800 mr-1 mb-1"
+                            className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800"
                           >
                             {skill?.name || "Unnamed Skill"}
                           </span>
@@ -259,8 +278,8 @@ const CandidatesList: React.FC = () => {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center justify-end space-x-2">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center justify-end space-x-1">
                         <button
                           onClick={() =>
                             navigate(`/htd/candidates/${candidate._id}`)
@@ -295,8 +314,8 @@ const CandidatesList: React.FC = () => {
           </div>
 
           {/* Pagination */}
-          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:flex-1 sm:items-center sm:justify-between gap-4">
               <div>
                 <p className="text-sm text-gray-700">
                   Showing{" "}
@@ -320,43 +339,71 @@ const CandidatesList: React.FC = () => {
                       setCurrentPage((prev) => Math.max(prev - 1, 1))
                     }
                     disabled={currentPage === 1}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
+                    className={`relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
                       currentPage === 1
                         ? "text-gray-300 cursor-not-allowed"
                         : "text-gray-500 hover:bg-gray-50"
                     }`}
                   >
-                    Previous
+                    <span className="sr-only">Previous</span>
+                    <span className="hidden sm:inline">Previous</span>
+                    <span className="inline sm:hidden">Prev</span>
                   </button>
 
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (page) => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${
-                          currentPage === page
-                            ? "bg-blue-50 text-blue-600 z-10"
-                            : "text-gray-500 hover:bg-gray-50"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    )
-                  )}
+                  <div className="hidden sm:flex">
+                    {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                            currentPage === pageNum
+                              ? "bg-blue-50 text-blue-600 z-10 border-blue-500"
+                              : "bg-white text-gray-500 border-gray-300 hover:bg-gray-50"
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+
+                    {totalPages > 5 && currentPage < totalPages - 2 && (
+                      <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                        ...
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex sm:hidden">
+                    <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                      {currentPage} / {totalPages}
+                    </span>
+                  </div>
 
                   <button
                     onClick={() =>
                       setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                     }
                     disabled={currentPage === totalPages}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
+                    className={`relative inline-flex items-center px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
                       currentPage === totalPages
                         ? "text-gray-300 cursor-not-allowed"
                         : "text-gray-500 hover:bg-gray-50"
                     }`}
                   >
-                    Next
+                    <span className="sr-only">Next</span>
+                    <span>Next</span>
                   </button>
                 </nav>
               </div>

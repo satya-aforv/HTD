@@ -7,6 +7,17 @@ import {
   FaFilePdf,
   FaFileAlt,
   FaFileImage,
+  FaUser,
+  FaEnvelope,
+  FaPhone,
+  FaBirthdayCake,
+  FaVenusMars,
+  FaMapMarkerAlt,
+  FaGraduationCap,
+  FaBriefcase,
+  FaCode,
+  FaFileSignature,
+  FaSpinner,
 } from "react-icons/fa";
 import { getStatusBadge } from "../../Common/StatusBadge";
 
@@ -132,7 +143,7 @@ const CandidateDetail: React.FC = () => {
       link.href = url;
       link.setAttribute(
         "download",
-        `${candidate?.name.replace(/\s+/g, "_")}_Profile.pdf`
+        `${candidate?.name?.replace(/\s+/g, "_") || "candidate"}_Profile.pdf`
       );
       document.body.appendChild(link);
       link.click();
@@ -147,31 +158,46 @@ const CandidateDetail: React.FC = () => {
 
   const formatDate = (dateString: string) => {
     if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch (error) {
+      return "Invalid Date";
+    }
   };
 
   const calculateExperienceDuration = (startDate: string, endDate: string) => {
     if (!startDate) return "N/A";
 
-    const start = new Date(startDate);
-    const end = endDate ? new Date(endDate) : new Date();
+    try {
+      const start = new Date(startDate);
+      const end = endDate ? new Date(endDate) : new Date();
 
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    const years = Math.floor(diffDays / 365);
-    const months = Math.floor((diffDays % 365) / 30);
+      // Handle invalid dates
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) return "N/A";
 
-    return `${years} year${years !== 1 ? "s" : ""} ${months} month${
-      months !== 1 ? "s" : ""
-    }`;
+      const diffTime = Math.abs(end.getTime() - start.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const years = Math.floor(diffDays / 365);
+      const months = Math.floor((diffDays % 365) / 30);
+
+      if (years === 0 && months === 0) return "Less than a month";
+
+      return `${years} year${years !== 1 ? "s" : ""} ${months} month${
+        months !== 1 ? "s" : ""
+      }`;
+    } catch (error) {
+      return "N/A";
+    }
   };
 
   const getDocumentIcon = (docType: string) => {
+    if (!docType) return <FaFileAlt className="text-gray-500" />;
+
     const type = docType.toLowerCase();
     if (type.includes("pdf")) return <FaFilePdf className="text-red-500" />;
     if (type.includes("doc")) return <FaFileAlt className="text-blue-500" />;
@@ -184,8 +210,6 @@ const CandidateDetail: React.FC = () => {
     }
     return <FaFileAlt className="text-gray-500" />;
   };
-
-  
 
   const getProficiencyBadgeClass = (proficiency: string) => {
     switch (proficiency) {
@@ -202,11 +226,27 @@ const CandidateDetail: React.FC = () => {
     }
   };
 
+  // Calculate total experience in years and months
+  const formatTotalExperience = (months: number | undefined) => {
+    if (!months || months === 0) return "None";
+
+    const years = Math.floor(months / 12);
+    const remainingMonths = months % 12;
+
+    if (years === 0)
+      return `${remainingMonths} month${remainingMonths !== 1 ? "s" : ""}`;
+    if (remainingMonths === 0) return `${years} year${years !== 1 ? "s" : ""}`;
+
+    return `${years} year${years !== 1 ? "s" : ""} ${remainingMonths} month${
+      remainingMonths !== 1 ? "s" : ""
+    }`;
+  };
+
   if (loading) {
     return (
-      <div className="p-6 flex justify-center items-center h-full">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <p className="ml-3 text-gray-600">Loading candidate details...</p>
+      <div className="p-6 flex flex-col justify-center items-center min-h-64">
+        <FaSpinner className="animate-spin text-4xl text-blue-600 mb-3" />
+        <p className="text-gray-600">Loading candidate details...</p>
       </div>
     );
   }
@@ -228,50 +268,33 @@ const CandidateDetail: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 md:p-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-800">
-            {candidate?.name}
+          <h1 className="text-2xl font-semibold text-gray-800 break-words">
+            {candidate.name || "Unnamed Candidate"}
           </h1>
-          <p className="text-gray-600">{getStatusBadge(candidate?.status?.replace("_", " ") || "Unknown")}</p>
+          <div className="mt-1">
+            {getStatusBadge(candidate.status?.replace(/_/g, " ") || "Unknown")}
+          </div>
         </div>
-        <div className="flex space-x-3">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
           <button
             onClick={handleGenerateProfile}
             disabled={generatingProfile}
-            className={`bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md flex items-center ${
+            className={`bg-green-600 hover:bg-green-700 text-white py-2 px-3 md:px-4 rounded-md flex items-center text-sm ${
               generatingProfile ? "opacity-70 cursor-not-allowed" : ""
             }`}
           >
             {generatingProfile ? (
               <>
-                <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
+                <FaSpinner className="animate-spin mr-2" />
                 Generating...
               </>
             ) : (
               <>
-                <FaDownload className="mr-2" /> Generate Profile
+                <FaDownload className="mr-2" /> Generate
               </>
             )}
           </button>
@@ -280,14 +303,14 @@ const CandidateDetail: React.FC = () => {
               href={profileUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-md flex items-center"
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 md:px-4 rounded-md flex items-center text-sm"
             >
-              <FaFilePdf className="mr-2" /> View last generated profile
+              <FaFilePdf className="mr-2" /> View PDF
             </a>
           )}
           <button
             onClick={handleEdit}
-            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md flex items-center"
+            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 md:px-4 rounded-md flex items-center text-sm"
           >
             <FaEdit className="mr-2" /> Edit
           </button>
@@ -296,132 +319,119 @@ const CandidateDetail: React.FC = () => {
 
       {/* Tabs */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex">
-            <button
-              onClick={() => setActiveTab("overview")}
-              className={`py-4 px-6 text-center border-b-2 font-medium text-sm ${
-                activeTab === "overview"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              Overview
-            </button>
-            <button
-              onClick={() => setActiveTab("education")}
-              className={`py-4 px-6 text-center border-b-2 font-medium text-sm ${
-                activeTab === "education"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              Education
-            </button>
-            <button
-              onClick={() => setActiveTab("experience")}
-              className={`py-4 px-6 text-center border-b-2 font-medium text-sm ${
-                activeTab === "experience"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              Experience
-            </button>
-            <button
-              onClick={() => setActiveTab("skills")}
-              className={`py-4 px-6 text-center border-b-2 font-medium text-sm ${
-                activeTab === "skills"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              Skills
-            </button>
-            <button
-              onClick={() => setActiveTab("documents")}
-              className={`py-4 px-6 text-center border-b-2 font-medium text-sm ${
-                activeTab === "documents"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              Documents
-            </button>
+        <div className="border-b border-gray-200 overflow-x-auto">
+          <nav className="flex min-w-max">
+            {["overview", "education", "experience", "skills", "documents"].map(
+              (tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`py-3 px-4 text-center border-b-2 font-medium text-sm whitespace-nowrap ${
+                    activeTab === tab
+                      ? "border-blue-500 text-blue-600"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              )
+            )}
           </nav>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 md:p-6">
           {/* Overview Tab */}
           {activeTab === "overview" && (
-            <div className="space-y-8">
+            <div className="space-y-6 md:space-y-8">
               {/* Personal Information */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
-                  Personal Information
+                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                  <FaUser className="mr-2 text-blue-500" /> Personal Information
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">
-                      Full Name
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <p className="text-sm font-medium text-gray-500 flex items-center">
+                      <FaUser className="mr-1" /> Full Name
                     </p>
-                    <p className="mt-1">{candidate?.name || "Not provided"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Email</p>
-                    <p className="mt-1">{candidate?.email || "Not provided"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Phone</p>
-                    <p className="mt-1">{candidate?.phone || "Not provided"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">
-                      Date of Birth
+                    <p className="mt-1 text-gray-900">
+                      {candidate.name || "Not provided"}
                     </p>
-                    <p className="mt-1">
-                      {candidate?.dateOfBirth
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <p className="text-sm font-medium text-gray-500 flex items-center">
+                      <FaEnvelope className="mr-1" /> Email
+                    </p>
+                    <p className="mt-1 text-gray-900 break-all">
+                      {candidate.email || "Not provided"}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <p className="text-sm font-medium text-gray-500 flex items-center">
+                      <FaPhone className="mr-1" /> Phone
+                    </p>
+                    <p className="mt-1 text-gray-900">
+                      {candidate.phone || "Not provided"}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <p className="text-sm font-medium text-gray-500 flex items-center">
+                      <FaBirthdayCake className="mr-1" /> Date of Birth
+                    </p>
+                    <p className="mt-1 text-gray-900">
+                      {candidate.dateOfBirth
                         ? formatDate(candidate.dateOfBirth)
                         : "Not provided"}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Gender</p>
-                    <p className="mt-1">{candidate?.gender || "Not provided"}</p>
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <p className="text-sm font-medium text-gray-500 flex items-center">
+                      <FaVenusMars className="mr-1" /> Gender
+                    </p>
+                    <p className="mt-1 text-gray-900">
+                      {candidate.gender || "Not provided"}
+                    </p>
                   </div>
-                  <div>
+                  <div className="bg-gray-50 p-3 rounded-md">
                     <p className="text-sm font-medium text-gray-500">Status</p>
-                    <p className="mt-1">{getStatusBadge(candidate?.status?.replace("_", " ") || "Unknown")}</p>
+                    <div className="mt-1">
+                      {getStatusBadge(
+                        candidate.status?.replace(/_/g, " ") || "Unknown"
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Address */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
-                  Address
+                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                  <FaMapMarkerAlt className="mr-2 text-blue-500" /> Address
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <div className="md:col-span-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                  <div className="bg-gray-50 p-3 rounded-md sm:col-span-2">
                     <p className="text-sm font-medium text-gray-500">
                       Street Address
                     </p>
-                    <p className="mt-1">
-                      {candidate?.address || "Not provided"}
+                    <p className="mt-1 text-gray-900">
+                      {candidate.address || "Not provided"}
                     </p>
                   </div>
-                  <div>
+                  <div className="bg-gray-50 p-3 rounded-md">
                     <p className="text-sm font-medium text-gray-500">City</p>
-                    <p className="mt-1">{candidate?.city || "Not provided"}</p>
+                    <p className="mt-1 text-gray-900">
+                      {candidate.city || "Not provided"}
+                    </p>
                   </div>
-                  <div>
+                  <div className="bg-gray-50 p-3 rounded-md">
                     <p className="text-sm font-medium text-gray-500">State</p>
-                    <p className="mt-1">{candidate?.state || "Not provided"}</p>
+                    <p className="mt-1 text-gray-900">
+                      {candidate.state || "Not provided"}
+                    </p>
                   </div>
-                  <div>
+                  <div className="bg-gray-50 p-3 rounded-md">
                     <p className="text-sm font-medium text-gray-500">Pincode</p>
-                    <p className="mt-1">
-                      {candidate?.pincode || "Not provided"}
+                    <p className="mt-1 text-gray-900">
+                      {candidate.pincode || "Not provided"}
                     </p>
                   </div>
                 </div>
@@ -429,69 +439,66 @@ const CandidateDetail: React.FC = () => {
 
               {/* Professional Summary */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
-                  Professional Summary
+                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                  <FaBriefcase className="mr-2 text-blue-500" /> Professional
+                  Summary
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">
-                      Highest Qualification
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <p className="text-sm font-medium text-gray-500 flex items-center">
+                      <FaGraduationCap className="mr-1" /> Highest Qualification
                     </p>
-                    <p className="mt-1">
-                      {candidate?.highestQualification || "Not provided"}
+                    <p className="mt-1 text-gray-900">
+                      {candidate.highestQualification || "Not provided"}
                     </p>
                   </div>
-                  <div>
+                  <div className="bg-gray-50 p-3 rounded-md">
                     <p className="text-sm font-medium text-gray-500">
                       Total IT Experience
                     </p>
-                    <p className="mt-1">
-                      {candidate?.totalItExperience
-                        ? `${candidate.totalItExperience} months`
-                        : "None"}
+                    <p className="mt-1 text-gray-900">
+                      {formatTotalExperience(candidate.totalItExperience)}
                     </p>
                   </div>
-                  <div>
+                  <div className="bg-gray-50 p-3 rounded-md">
                     <p className="text-sm font-medium text-gray-500">
                       Total Non-IT Experience
                     </p>
-                    <p className="mt-1">
-                      {candidate?.totalNonItExperience
-                        ? `${candidate.totalNonItExperience} months`
-                        : "None"}
+                    <p className="mt-1 text-gray-900">
+                      {formatTotalExperience(candidate.totalNonItExperience)}
                     </p>
                   </div>
-                  <div>
+                  <div className="bg-gray-50 p-3 rounded-md">
                     <p className="text-sm font-medium text-gray-500">
                       Previous Salary
                     </p>
-                    <p className="mt-1">
+                    <p className="mt-1 text-gray-900">
                       ₹
-                      {candidate?.previousSalary?.toLocaleString("en-IN") ||
-                        "0"}
+                      {candidate.previousSalary?.toLocaleString("en-IN") || "0"}
                     </p>
                   </div>
-                  <div>
+                  <div className="bg-gray-50 p-3 rounded-md">
                     <p className="text-sm font-medium text-gray-500">
                       Expected Salary
                     </p>
-                    <p className="mt-1">
+                    <p className="mt-1 text-gray-900">
                       ₹
-                      {candidate?.expectedSalary?.toLocaleString("en-IN") ||
-                        "0"}
+                      {candidate.expectedSalary?.toLocaleString("en-IN") || "0"}
                     </p>
                   </div>
                 </div>
               </div>
 
               {/* Notes */}
-              {candidate?.notes && (
+              {candidate.notes && (
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">
-                    Notes
+                  <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                    <FaFileSignature className="mr-2 text-blue-500" /> Notes
                   </h3>
                   <div className="bg-gray-50 p-4 rounded-md">
-                    <p className="whitespace-pre-line">{candidate?.notes}</p>
+                    <p className="whitespace-pre-line text-gray-900">
+                      {candidate.notes}
+                    </p>
                   </div>
                 </div>
               )}
@@ -501,41 +508,46 @@ const CandidateDetail: React.FC = () => {
           {/* Education Tab */}
           {activeTab === "education" && (
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Education History
+              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                <FaGraduationCap className="mr-2 text-blue-500" /> Education
+                History
               </h3>
 
-              {candidate?.education?.length === 0 ? (
+              {!candidate.education || candidate.education.length === 0 ? (
                 <div className="text-center py-8 bg-gray-50 rounded-md">
                   <p className="text-gray-500">
                     No education details available
                   </p>
                 </div>
               ) : (
-                <div className="space-y-6">
-                  {candidate?.education?.map((edu, index) => (
+                <div className="space-y-4">
+                  {candidate.education.map((edu, index) => (
                     <div key={index} className="bg-gray-50 p-4 rounded-md">
-                      <div className="flex justify-between items-start">
-                        <div>
+                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+                        <div className="flex-1">
                           <h4 className="text-lg font-medium text-gray-900">
-                            {edu.degree}
+                            {edu.degree || "No degree specified"}
                           </h4>
-                          <p className="text-gray-600">{edu.institution}</p>
+                          <p className="text-gray-600">
+                            {edu.institution || "Institution not specified"}
+                          </p>
+                          {edu.field && (
+                            <p className="text-sm text-gray-600 mt-1">
+                              Field: {edu.field}
+                            </p>
+                          )}
                         </div>
                         <div className="text-right">
                           <p className="text-sm font-medium text-gray-900">
-                            {edu.yearOfPassing}
+                            {edu.yearOfPassing || "Year not specified"}
                           </p>
                           <p className="text-sm text-gray-600">
-                            {edu.percentage}%
+                            {edu.percentage
+                              ? `${edu.percentage}%`
+                              : "Percentage not specified"}
                           </p>
                         </div>
                       </div>
-                      {edu.field && (
-                        <p className="mt-2 text-gray-600">
-                          Field of Study: {edu.field}
-                        </p>
-                      )}
                     </div>
                   ))}
                 </div>
@@ -545,30 +557,38 @@ const CandidateDetail: React.FC = () => {
 
           {/* Experience Tab */}
           {activeTab === "experience" && (
-            <div className="space-y-8">
+            <div className="space-y-6 md:space-y-8">
               {/* IT Experience */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
-                  IT Experience
+                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                  <FaCode className="mr-2 text-blue-500" /> IT Experience
                 </h3>
 
-                {candidate && candidate?.itExperience?.length === 0 ? (
+                {!candidate.itExperience ||
+                candidate.itExperience.length === 0 ? (
                   <div className="text-center py-8 bg-gray-50 rounded-md">
                     <p className="text-gray-500">No IT experience available</p>
                   </div>
                 ) : (
-                  <div className="space-y-6">
-                    {candidate?.itExperience?.map((exp, index) => (
+                  <div className="space-y-4">
+                    {candidate.itExperience.map((exp, index) => (
                       <div key={index} className="bg-gray-50 p-4 rounded-md">
-                        <div className="flex justify-between items-start">
-                          <div>
+                        <div className="flex flex-col md:flex-row justify-between items-start gap-3">
+                          <div className="flex-1">
                             <h4 className="text-lg font-medium text-gray-900">
-                              {exp.role}
+                              {exp.role || "Role not specified"}
                             </h4>
-                            <p className="text-gray-600">{exp.company}</p>
+                            <p className="text-gray-600">
+                              {exp.company || "Company not specified"}
+                            </p>
+                            {exp.description && (
+                              <p className="mt-3 text-gray-600 whitespace-pre-line text-sm">
+                                {exp.description}
+                              </p>
+                            )}
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-medium text-gray-900">
+                            <p className="text-sm font-medium text-gray-900 whitespace-nowrap">
                               {formatDate(exp.startDate)} -{" "}
                               {exp.endDate
                                 ? formatDate(exp.endDate)
@@ -582,11 +602,6 @@ const CandidateDetail: React.FC = () => {
                             </p>
                           </div>
                         </div>
-                        {exp.description && (
-                          <p className="mt-3 text-gray-600 whitespace-pre-line">
-                            {exp.description}
-                          </p>
-                        )}
                       </div>
                     ))}
                   </div>
@@ -599,25 +614,33 @@ const CandidateDetail: React.FC = () => {
                   Non-IT Experience
                 </h3>
 
-                {candidate?.nonItExperience?.length === 0 ? (
+                {!candidate.nonItExperience ||
+                candidate.nonItExperience.length === 0 ? (
                   <div className="text-center py-8 bg-gray-50 rounded-md">
                     <p className="text-gray-500">
                       No Non-IT experience available
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-6">
-                    {candidate?.nonItExperience?.map((exp, index) => (
+                  <div className="space-y-4">
+                    {candidate.nonItExperience.map((exp, index) => (
                       <div key={index} className="bg-gray-50 p-4 rounded-md">
-                        <div className="flex justify-between items-start">
-                          <div>
+                        <div className="flex flex-col md:flex-row justify-between items-start gap-3">
+                          <div className="flex-1">
                             <h4 className="text-lg font-medium text-gray-900">
-                              {exp.role}
+                              {exp.role || "Role not specified"}
                             </h4>
-                            <p className="text-gray-600">{exp.company}</p>
+                            <p className="text-gray-600">
+                              {exp.company || "Company not specified"}
+                            </p>
+                            {exp.description && (
+                              <p className="mt-3 text-gray-600 whitespace-pre-line text-sm">
+                                {exp.description}
+                              </p>
+                            )}
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-medium text-gray-900">
+                            <p className="text-sm font-medium text-gray-900 whitespace-nowrap">
                               {formatDate(exp.startDate)} -{" "}
                               {exp.endDate
                                 ? formatDate(exp.endDate)
@@ -631,11 +654,6 @@ const CandidateDetail: React.FC = () => {
                             </p>
                           </div>
                         </div>
-                        {exp.description && (
-                          <p className="mt-3 text-gray-600 whitespace-pre-line">
-                            {exp.description}
-                          </p>
-                        )}
                       </div>
                     ))}
                   </div>
@@ -648,25 +666,25 @@ const CandidateDetail: React.FC = () => {
                   Career Gaps
                 </h3>
 
-                {candidate?.careerGaps?.length === 0 ? (
+                {!candidate.careerGaps || candidate.careerGaps.length === 0 ? (
                   <div className="text-center py-8 bg-gray-50 rounded-md">
                     <p className="text-gray-500">No career gaps recorded</p>
                   </div>
                 ) : (
-                  <div className="space-y-6">
-                    {candidate?.careerGaps?.map((gap, index) => (
+                  <div className="space-y-4">
+                    {candidate.careerGaps.map((gap, index) => (
                       <div key={index} className="bg-gray-50 p-4 rounded-md">
-                        <div className="flex justify-between items-start">
-                          <div>
+                        <div className="flex flex-col md:flex-row justify-between items-start gap-3">
+                          <div className="flex-1">
                             <h4 className="text-lg font-medium text-gray-900">
                               Career Gap
                             </h4>
                             <p className="text-gray-600 mt-2 whitespace-pre-line">
-                              {gap.reason}
+                              {gap.reason || "No reason provided"}
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-medium text-gray-900">
+                            <p className="text-sm font-medium text-gray-900 whitespace-nowrap">
                               {formatDate(gap.startDate)} -{" "}
                               {formatDate(gap.endDate)}
                             </p>
@@ -689,9 +707,11 @@ const CandidateDetail: React.FC = () => {
           {/* Skills Tab */}
           {activeTab === "skills" && (
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Skills</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                <FaCode className="mr-2 text-blue-500" /> Skills
+              </h3>
 
-              {candidate?.skills?.length === 0 ? (
+              {!candidate.skills || candidate.skills.length === 0 ? (
                 <div className="text-center py-8 bg-gray-50 rounded-md">
                   <p className="text-gray-500">No skills recorded</p>
                 </div>
@@ -702,26 +722,30 @@ const CandidateDetail: React.FC = () => {
                     <h4 className="text-md font-medium text-gray-700 mb-3">
                       IT Skills
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {candidate &&
-                        candidate?.skills &&
-                        candidate?.skills
-                          .filter((skill) => skill?.type === "IT")
+                    {candidate.skills.filter((skill) => skill.type === "IT")
+                      .length === 0 ? (
+                      <div className="text-center py-4 bg-gray-50 rounded-md">
+                        <p className="text-gray-500">No IT skills recorded</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {candidate.skills
+                          .filter((skill) => skill.type === "IT")
                           .map((skill, index) => (
                             <div
                               key={index}
-                              className="bg-gray-50 p-4 rounded-md"
+                              className="bg-gray-50 p-3 rounded-md"
                             >
                               <div className="flex justify-between items-center">
                                 <h5 className="font-medium text-gray-900">
-                                  {skill.name}
+                                  {skill.name || "Unnamed Skill"}
                                 </h5>
                                 <span
                                   className={`px-2 py-1 text-xs font-semibold rounded-full ${getProficiencyBadgeClass(
                                     skill.proficiency
                                   )}`}
                                 >
-                                  {skill.proficiency}
+                                  {skill.proficiency || "UNKNOWN"}
                                 </span>
                               </div>
                               <p className="text-sm text-gray-600 mt-1">
@@ -731,15 +755,8 @@ const CandidateDetail: React.FC = () => {
                               </p>
                             </div>
                           ))}
-                    </div>
-                    {candidate &&
-                      candidate?.skills &&
-                      candidate.skills.filter((skill) => skill.type === "IT")
-                        .length === 0 && (
-                        <div className="text-center py-4 bg-gray-50 rounded-md">
-                          <p className="text-gray-500">No IT skills recorded</p>
-                        </div>
-                      )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Non-IT Skills */}
@@ -747,26 +764,32 @@ const CandidateDetail: React.FC = () => {
                     <h4 className="text-md font-medium text-gray-700 mb-3">
                       Non-IT Skills
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {candidate &&
-                        candidate?.skills &&
-                        candidate.skills
+                    {candidate.skills.filter((skill) => skill.type === "NON_IT")
+                      .length === 0 ? (
+                      <div className="text-center py-4 bg-gray-50 rounded-md">
+                        <p className="text-gray-500">
+                          No Non-IT skills recorded
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {candidate.skills
                           .filter((skill) => skill.type === "NON_IT")
                           .map((skill, index) => (
                             <div
                               key={index}
-                              className="bg-gray-50 p-4 rounded-md"
+                              className="bg-gray-50 p-3 rounded-md"
                             >
                               <div className="flex justify-between items-center">
                                 <h5 className="font-medium text-gray-900">
-                                  {skill.name}
+                                  {skill.name || "Unnamed Skill"}
                                 </h5>
                                 <span
                                   className={`px-2 py-1 text-xs font-semibold rounded-full ${getProficiencyBadgeClass(
                                     skill.proficiency
                                   )}`}
                                 >
-                                  {skill.proficiency}
+                                  {skill.proficiency || "UNKNOWN"}
                                 </span>
                               </div>
                               <p className="text-sm text-gray-600 mt-1">
@@ -776,18 +799,8 @@ const CandidateDetail: React.FC = () => {
                               </p>
                             </div>
                           ))}
-                    </div>
-                    {candidate &&
-                      candidate?.skills &&
-                      candidate.skills.filter(
-                        (skill) => skill.type === "NON_IT"
-                      ).length === 0 && (
-                        <div className="text-center py-4 bg-gray-50 rounded-md">
-                          <p className="text-gray-500">
-                            No Non-IT skills recorded
-                          </p>
-                        </div>
-                      )}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -797,46 +810,44 @@ const CandidateDetail: React.FC = () => {
           {/* Documents Tab */}
           {activeTab === "documents" && (
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Documents
+              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                <FaFileAlt className="mr-2 text-blue-500" /> Documents
               </h3>
 
-              {candidate &&
-              candidate?.documents &&
-              candidate.documents.length === 0 ? (
+              {!candidate.documents || candidate.documents.length === 0 ? (
                 <div className="text-center py-8 bg-gray-50 rounded-md">
                   <p className="text-gray-500">No documents uploaded</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {candidate &&
-                    candidate?.documents &&
-                    candidate.documents.map((doc, index) => (
-                      <div
-                        key={index}
-                        className="bg-gray-50 p-4 rounded-md flex items-center justify-between"
-                      >
-                        <div className="flex items-center">
-                          <div className="mr-3">
-                            {getDocumentIcon(doc.type)}
-                          </div>
-                          <div>
-                            <h5 className="font-medium text-gray-900">
-                              {doc.name}
-                            </h5>
-                            <p className="text-sm text-gray-600">{doc.type}</p>
-                          </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {candidate.documents.map((doc, index) => (
+                    <div
+                      key={index}
+                      className="bg-gray-50 p-3 rounded-md flex items-center justify-between"
+                    >
+                      <div className="flex items-center truncate">
+                        <div className="mr-3 flex-shrink-0">
+                          {getDocumentIcon(doc.type)}
                         </div>
-                        <a
-                          href={doc.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="bg-blue-100 text-blue-700 px-3 py-1 rounded-md text-sm hover:bg-blue-200 flex items-center"
-                        >
-                          <FaDownload className="mr-1" /> View
-                        </a>
+                        <div className="truncate">
+                          <h5 className="font-medium text-gray-900 truncate">
+                            {doc.name || "Unnamed Document"}
+                          </h5>
+                          <p className="text-sm text-gray-600 truncate">
+                            {doc.type || "Unknown type"}
+                          </p>
+                        </div>
                       </div>
-                    ))}
+                      <a
+                        href={doc.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-blue-100 text-blue-700 px-3 py-1 rounded-md text-sm hover:bg-blue-200 flex items-center flex-shrink-0 ml-2"
+                      >
+                        <FaDownload className="mr-1" /> View
+                      </a>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

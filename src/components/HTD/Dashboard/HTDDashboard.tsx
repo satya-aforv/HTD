@@ -1,9 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { FaUserGraduate, FaChalkboardTeacher, FaMoneyBillWave } from 'react-icons/fa';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js';
-import { Pie, Bar } from 'react-chartjs-2';
-import { htdAPI, type DashboardStats } from '../../../services/htdAPI';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import {
+  FaUserGraduate,
+  FaChalkboardTeacher,
+  FaMoneyBillWave,
+} from "react-icons/fa";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+} from "chart.js";
+import { Pie, Bar } from "react-chartjs-2";
+import { htdAPI, type DashboardStats } from "../../../services/htdAPI";
 
 ChartJS.register(
   ArcElement,
@@ -28,8 +41,10 @@ const HTDDashboard: React.FC = () => {
         setStats(data);
         setError(null);
       } catch (err) {
-        console.error('Error fetching dashboard stats:', err);
-        setError('Failed to load dashboard statistics. Please try again later.');
+        console.error("Error fetching dashboard stats:", err);
+        setError(
+          "Failed to load dashboard statistics. Please try again later."
+        );
       } finally {
         setLoading(false);
       }
@@ -39,14 +54,23 @@ const HTDDashboard: React.FC = () => {
   }, []);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    if (!dateString) return "N/A";
+
+    try {
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid date";
+    }
   };
 
   const getStatusColor = (status: string) => {
+    if (!status) return "bg-gray-100 text-gray-800";
+
     switch (status.toLowerCase()) {
       case "active":
         return "bg-green-100 text-green-800";
@@ -93,12 +117,24 @@ const HTDDashboard: React.FC = () => {
     );
   }
 
+  // Safely handle potentially undefined data
+  const candidatesByStatus = stats?.candidatesByStatus || [];
+  const trainingsByMonth = stats?.trainingsByMonth || [];
+  const recentCandidates = stats?.recentCandidates || [];
+  const upcomingPayments = stats?.upcomingPayments || [];
+  const totalCandidates = stats?.totalCandidates || 0;
+  const activeCandidates = stats?.activeCandidates || 0;
+  const completedTrainings = stats?.completedTrainings || 0;
+  const ongoingTrainings = stats?.ongoingTrainings || 0;
+  const totalPayments = stats?.totalPayments || 0;
+  const monthlyPayments = stats?.monthlyPayments || 0;
+
   // Candidate Status Chart Data
   const candidateStatusData = {
-    labels: stats?.candidatesByStatus?.map((item) => item.status) || [],
+    labels: candidatesByStatus.map((item) => item.status || "Unknown"),
     datasets: [
       {
-        data: stats?.candidatesByStatus?.map((item) => item.count) || [],
+        data: candidatesByStatus.map((item) => item.count || 0),
         backgroundColor: [
           "#4F46E5", // Indigo
           "#10B981", // Green
@@ -113,81 +149,74 @@ const HTDDashboard: React.FC = () => {
   };
 
   const monthlyTrainingsData = {
-    labels: stats?.trainingsByMonth?.map((item) => item.month) || [],
+    labels: trainingsByMonth.map((item) => item.month || "Unknown"),
     datasets: [
       {
         label: "Trainings",
-        data: stats?.trainingsByMonth?.map((item) => item.count) || [],
+        data: trainingsByMonth.map((item) => item.count || 0),
         backgroundColor: "#3B82F6",
       },
     ],
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">
+    <div className="p-4 md:p-6">
+      <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-6">
         HTD Management Dashboard
       </h1>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
         {/* Candidates Stats */}
-        <div className="bg-white rounded-lg shadow-md p-6 flex items-center">
+        <div className="bg-white rounded-lg shadow-md p-4 md:p-6 flex items-center">
           <div className="rounded-full bg-indigo-100 p-3 mr-4">
             <FaUserGraduate className="text-indigo-600 text-xl" />
           </div>
           <div>
-            <p className="text-sm text-gray-500">Total Candidates</p>
-            <div className="flex items-end gap-2">
-              <h3 className="text-2xl font-bold text-gray-800">
-                {stats?.totalCandidates || 0}
+            <p className="text-xs md:text-sm text-gray-500">Total Candidates</p>
+            <div className="flex flex-col md:flex-row md:items-end gap-1 md:gap-2">
+              <h3 className="text-xl md:text-2xl font-bold text-gray-800">
+                {totalCandidates}
               </h3>
-              <p className="text-sm text-green-600">
-                <span className="font-medium">
-                  {stats?.activeCandidates || 0}
-                </span>{" "}
-                active
+              <p className="text-xs md:text-sm text-green-600">
+                <span className="font-medium">{activeCandidates}</span> active
               </p>
             </div>
           </div>
         </div>
 
         {/* Trainings Stats */}
-        <div className="bg-white rounded-lg shadow-md p-6 flex items-center">
+        <div className="bg-white rounded-lg shadow-md p-4 md:p-6 flex items-center">
           <div className="rounded-full bg-blue-100 p-3 mr-4">
             <FaChalkboardTeacher className="text-blue-600 text-xl" />
           </div>
           <div>
-            <p className="text-sm text-gray-500">Trainings</p>
-            <div className="flex items-end gap-2">
-              <h3 className="text-2xl font-bold text-gray-800">
-                {(stats?.completedTrainings || 0) +
-                  (stats?.ongoingTrainings || 0)}
+            <p className="text-xs md:text-sm text-gray-500">Trainings</p>
+            <div className="flex flex-col md:flex-row md:items-end gap-1 md:gap-2">
+              <h3 className="text-xl md:text-2xl font-bold text-gray-800">
+                {completedTrainings + ongoingTrainings}
               </h3>
-              <p className="text-sm text-blue-600">
-                <span className="font-medium">
-                  {stats?.ongoingTrainings || 0}
-                </span>{" "}
-                ongoing
+              <p className="text-xs md:text-sm text-blue-600">
+                <span className="font-medium">{ongoingTrainings}</span> ongoing
               </p>
             </div>
           </div>
         </div>
 
         {/* Payments Stats */}
-        <div className="bg-white rounded-lg shadow-md p-6 flex items-center">
+        <div className="bg-white rounded-lg shadow-md p-4 md:p-6 flex items-center">
           <div className="rounded-full bg-green-100 p-3 mr-4">
             <FaMoneyBillWave className="text-green-600 text-xl" />
           </div>
           <div>
-            <p className="text-sm text-gray-500">Total Payments</p>
-            <div className="flex items-end gap-2">
-              <h3 className="text-2xl font-bold text-gray-800">
-                ${stats?.totalPayments?.toLocaleString() || 0}
+            <p className="text-xs md:text-sm text-gray-500">Total Payments</p>
+            <div className="flex flex-col md:flex-row md:items-end gap-1 md:gap-2">
+              <h3 className="text-xl md:text-2xl font-bold text-gray-800">
+                ${totalPayments.toLocaleString()}
               </h3>
-              <p className="text-sm text-green-600">
+              <p className="text-xs md:text-sm text-green-600">
                 <span className="font-medium">
-                  ${stats?.monthlyPayments?.toLocaleString() || 0}
+                  ${monthlyPayments.toLocaleString()}
                 </span>{" "}
                 this month
               </p>
@@ -196,32 +225,32 @@ const HTDDashboard: React.FC = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-sm font-medium text-gray-500 mb-3">
+        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+          <h3 className="text-xs md:text-sm font-medium text-gray-500 mb-3">
             Quick Actions
           </h3>
           <div className="grid grid-cols-2 gap-2">
             <Link
               to="/htd/candidates/new"
-              className="bg-indigo-50 hover:bg-indigo-100 p-3 rounded-md text-center text-indigo-700 text-sm font-medium"
+              className="bg-indigo-50 hover:bg-indigo-100 p-2 md:p-3 rounded-md text-center text-indigo-700 text-xs md:text-sm font-medium"
             >
               Add Candidate
             </Link>
             <Link
               to="/htd/trainings/new"
-              className="bg-blue-50 hover:bg-blue-100 p-3 rounded-md text-center text-blue-700 text-sm font-medium"
+              className="bg-blue-50 hover:bg-blue-100 p-2 md:p-3 rounded-md text-center text-blue-700 text-xs md:text-sm font-medium"
             >
               New Training
             </Link>
             <Link
               to="/htd/payments/new"
-              className="bg-green-50 hover:bg-green-100 p-3 rounded-md text-center text-green-700 text-sm font-medium"
+              className="bg-green-50 hover:bg-green-100 p-2 md:p-3 rounded-md text-center text-green-700 text-xs md:text-sm font-medium"
             >
               Record Payment
             </Link>
             <Link
               to="/htd/candidates"
-              className="bg-gray-50 hover:bg-gray-100 p-3 rounded-md text-center text-gray-700 text-sm font-medium"
+              className="bg-gray-50 hover:bg-gray-100 p-2 md:p-3 rounded-md text-center text-gray-700 text-xs md:text-sm font-medium"
             >
               View All
             </Link>
@@ -230,18 +259,31 @@ const HTDDashboard: React.FC = () => {
       </div>
 
       {/* Charts and Tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
         {/* Candidate Status Chart */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-medium text-gray-800 mb-4">
+        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+          <h3 className="text-base md:text-lg font-medium text-gray-800 mb-4">
             Candidates by Status
           </h3>
           <div className="h-64 flex justify-center items-center">
-            {stats?.candidatesByStatus &&
-            stats.candidatesByStatus.length > 0 ? (
+            {candidatesByStatus.length > 0 ? (
               <Pie
                 data={candidateStatusData}
-                options={{ maintainAspectRatio: false }}
+                options={{
+                  maintainAspectRatio: false,
+                  responsive: true,
+                  plugins: {
+                    legend: {
+                      position: "bottom",
+                      labels: {
+                        boxWidth: 12,
+                        font: {
+                          size: 10,
+                        },
+                      },
+                    },
+                  },
+                }}
               />
             ) : (
               <p className="text-gray-500">
@@ -252,22 +294,34 @@ const HTDDashboard: React.FC = () => {
         </div>
 
         {/* Training Monthly Chart */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-medium text-gray-800 mb-4">
+        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
+          <h3 className="text-base md:text-lg font-medium text-gray-800 mb-4">
             Trainings by Month
           </h3>
           <div className="h-64 flex justify-center items-center">
-            {stats?.trainingsByMonth && stats.trainingsByMonth.length > 0 ? (
+            {trainingsByMonth.length > 0 ? (
               <Bar
                 data={monthlyTrainingsData}
                 options={{
                   maintainAspectRatio: false,
+                  responsive: true,
                   scales: {
                     y: {
                       beginAtZero: true,
                       ticks: {
                         precision: 0,
                       },
+                    },
+                    x: {
+                      ticks: {
+                        maxRotation: 45,
+                        minRotation: 45,
+                      },
+                    },
+                  },
+                  plugins: {
+                    legend: {
+                      display: false,
                     },
                   },
                 }}
@@ -279,58 +333,57 @@ const HTDDashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Recent Candidates */}
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium text-gray-800">
+            <h3 className="text-base md:text-lg font-medium text-gray-800">
               Recent Candidates
             </h3>
             <Link
               to="/htd/candidates"
-              className="text-sm text-indigo-600 hover:text-indigo-800"
+              className="text-xs md:text-sm text-indigo-600 hover:text-indigo-800"
             >
               View all
             </Link>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead>
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Name
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Date Added
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
-                {stats?.recentCandidates &&
-                stats.recentCandidates.length > 0 ? (
-                  stats.recentCandidates.map((candidate) => (
+              <tbody className="bg-white divide-y divide-gray-200">
+                {recentCandidates.length > 0 ? (
+                  recentCandidates.map((candidate) => (
                     <tr key={candidate._id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap">
                         <Link
                           to={`/htd/candidates/${candidate._id}`}
-                          className="text-indigo-600 hover:text-indigo-900"
+                          className="text-indigo-600 hover:text-indigo-900 text-sm"
                         >
-                          {candidate.name}
+                          {candidate.name || "Unnamed Candidate"}
                         </Link>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap">
                         <span
                           className={`px-2 py-1 text-xs rounded-full ${getStatusColor(
-                            candidate.status
+                            candidate.status || ""
                           )}`}
                         >
-                          {candidate.status}
+                          {candidate.status || "Unknown"}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-500">
+                      <td className="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap text-xs md:text-sm text-gray-500">
                         {formatDate(candidate.createdAt)}
                       </td>
                     </tr>
@@ -339,7 +392,7 @@ const HTDDashboard: React.FC = () => {
                   <tr>
                     <td
                       colSpan={3}
-                      className="px-4 py-4 text-center text-gray-500"
+                      className="px-4 py-4 text-center text-gray-500 text-sm"
                     >
                       No recent candidates found
                     </td>
@@ -351,62 +404,63 @@ const HTDDashboard: React.FC = () => {
         </div>
 
         {/* Upcoming Payments */}
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium text-gray-800">
+            <h3 className="text-base md:text-lg font-medium text-gray-800">
               Upcoming Payments
             </h3>
             <Link
               to="/htd/payments"
-              className="text-sm text-indigo-600 hover:text-indigo-800"
+              className="text-xs md:text-sm text-indigo-600 hover:text-indigo-800"
             >
               View all
             </Link>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead>
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Candidate
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Amount
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Type
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Date
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
-                {stats?.upcomingPayments &&
-                stats.upcomingPayments.length > 0 ? (
-                  stats.upcomingPayments.map((payment) => (
+              <tbody className="bg-white divide-y divide-gray-200">
+                {upcomingPayments.length > 0 ? (
+                  upcomingPayments.map((payment) => (
                     <tr key={payment._id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap">
                         <Link
-                          to={`/htd/candidates/${payment.candidateId._id}`}
-                          className="text-indigo-600 hover:text-indigo-900"
+                          to={`/htd/candidates/${
+                            payment.candidateId?._id || "#"
+                          }`}
+                          className="text-indigo-600 hover:text-indigo-900 text-sm"
                         >
-                          {payment.candidateId.name}
+                          {payment.candidateId?.name || "Unknown Candidate"}
                         </Link>
                       </td>
-                      <td className="px-4 py-3 font-medium">
-                        ${payment.amount.toLocaleString()}
+                      <td className="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap font-medium text-sm">
+                        ${(payment.amount || 0).toLocaleString()}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap">
                         <span
                           className={`px-2 py-1 text-xs rounded-full ${getStatusColor(
-                            payment.type
+                            payment.type || ""
                           )}`}
                         >
-                          {payment.type}
+                          {payment.type || "Unknown"}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-500">
+                      <td className="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap text-xs md:text-sm text-gray-500">
                         {formatDate(payment.paymentDate)}
                       </td>
                     </tr>
@@ -415,7 +469,7 @@ const HTDDashboard: React.FC = () => {
                   <tr>
                     <td
                       colSpan={4}
-                      className="px-4 py-4 text-center text-gray-500"
+                      className="px-4 py-4 text-center text-gray-500 text-sm"
                     >
                       No upcoming payments found
                     </td>

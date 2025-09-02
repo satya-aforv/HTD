@@ -2,7 +2,7 @@
 import mongoose from 'mongoose';
 import Portfolio from '../models/Portfolio.js';
 
-const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/aforv';
+const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/matrixmedys';
 
 async function fixIsActive() {
   try {

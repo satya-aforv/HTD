@@ -38,7 +38,7 @@ const principlePermissions = [
 
 async function connectToDatabase() {
   try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/aforv';
+    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/matrixmedys';
     await mongoose.connect(mongoUri);
     console.log('✅ Connected to MongoDB');
     console.log(`🔗 Connected to: ${mongoUri}`);
@@ -72,7 +72,7 @@ async function seedPrinciplePermissions() {
     const createdPermissions = await Permission.insertMany(principlePermissions);
     console.log(`✅ Successfully created ${createdPermissions.length} principle permissions`);
     console.log('👤 Looking for users to assign permissions...');
-    const adminEmails = ['admin@aforv.com', 'admin@techcorp.com'];
+    const adminEmails = ['admin@matrixmedys.com', 'admin@techcorp.com'];
     let targetUser = null;
     for (const email of adminEmails) {
       targetUser = await User.findOne({ email });

@@ -46,13 +46,13 @@ const portfolioPermissions = [
 
 const seedPortfoliosWithPermissions = async () => {
   try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/aforv';
+    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/matrixmedys';
     await mongoose.connect(mongoUri);
     console.log('✅ Connected to MongoDB');
 
     await Portfolio.deleteMany();
 
-    let adminUser = await User.findOne({ email: 'admin@aforv.com' });
+    let adminUser = await User.findOne({ email: 'admin@matrixmedys.com' });
     if (!adminUser) {
       adminUser = await User.findOne();
     }

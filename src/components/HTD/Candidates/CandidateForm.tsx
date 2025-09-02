@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { FaPlus, FaTrash } from "react-icons/fa";
 import { useLocationData } from "../../../hooks/useLocationData";
 import api from "../../../services/api";
@@ -196,7 +195,7 @@ const CandidateForm: React.FC = () => {
   // File input change handler with proper typing
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>, docType: string): void => {
-      const file = e.target.files?.[0];
+      const file = e.target.files?.[0] || null;
       if (file) {
         setFileUploads((prev: Record<string, File | null>) => ({
           ...prev,
@@ -572,7 +571,7 @@ const CandidateForm: React.FC = () => {
 
   return (
     <motion.div
-      className="p-6"
+      className="p-4 md:p-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
@@ -584,7 +583,7 @@ const CandidateForm: React.FC = () => {
         transition={{ duration: 0.5, delay: 0.2 }}
       >
         <motion.h1
-          className="text-2xl font-semibold text-gray-800"
+          className="text-xl md:text-2xl font-semibold text-gray-800"
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
@@ -592,7 +591,7 @@ const CandidateForm: React.FC = () => {
           {id ? "Edit Candidate" : "Add New Candidate"}
         </motion.h1>
         <motion.p
-          className="text-gray-600 mt-1"
+          className="text-gray-600 mt-1 text-sm md:text-base"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
@@ -635,15 +634,15 @@ const CandidateForm: React.FC = () => {
       >
         {/* Tabs */}
         <motion.div
-          className="border-b border-gray-200"
+          className="border-b border-gray-200 overflow-x-auto"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.6 }}
         >
-          <nav className="-mb-px flex">
+          <nav className="-mb-px flex min-w-max">
             <motion.button
               onClick={() => setActiveTab("personal")}
-              className={`py-4 px-6 text-center border-b-2 font-medium text-sm transition-all duration-200 ${
+              className={`py-4 px-4 md:px-6 text-center border-b-2 font-medium text-sm transition-all duration-200 ${
                 activeTab === "personal"
                   ? "border-blue-500 text-blue-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -654,11 +653,11 @@ const CandidateForm: React.FC = () => {
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
             >
-              Personal Information
+              Personal
             </motion.button>
             <motion.button
               onClick={() => setActiveTab("education")}
-              className={`py-4 px-6 text-center border-b-2 font-medium text-sm transition-all duration-200 ${
+              className={`py-4 px-4 md:px-6 text-center border-b-2 font-medium text-sm transition-all duration-200 ${
                 activeTab === "education"
                   ? "border-blue-500 text-blue-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -673,7 +672,7 @@ const CandidateForm: React.FC = () => {
             </motion.button>
             <motion.button
               onClick={() => setActiveTab("experience")}
-              className={`py-4 px-6 text-center border-b-2 font-medium text-sm transition-all duration-200 ${
+              className={`py-4 px-4 md:px-6 text-center border-b-2 font-medium text-sm transition-all duration-200 ${
                 activeTab === "experience"
                   ? "border-blue-500 text-blue-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -688,7 +687,7 @@ const CandidateForm: React.FC = () => {
             </motion.button>
             <motion.button
               onClick={() => setActiveTab("skills")}
-              className={`py-4 px-6 text-center border-b-2 font-medium text-sm transition-all duration-200 ${
+              className={`py-4 px-4 md:px-6 text-center border-b-2 font-medium text-sm transition-all duration-200 ${
                 activeTab === "skills"
                   ? "border-blue-500 text-blue-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -703,7 +702,7 @@ const CandidateForm: React.FC = () => {
             </motion.button>
             <motion.button
               onClick={() => setActiveTab("documents")}
-              className={`py-4 px-6 text-center border-b-2 font-medium text-sm transition-all duration-200 ${
+              className={`py-4 px-4 md:px-6 text-center border-b-2 font-medium text-sm transition-all duration-200 ${
                 activeTab === "documents"
                   ? "border-blue-500 text-blue-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -721,7 +720,7 @@ const CandidateForm: React.FC = () => {
 
         <motion.form
           onSubmit={handleSubmit}
-          className="p-6"
+          className="p-4 md:p-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 1.2 }}
@@ -735,14 +734,14 @@ const CandidateForm: React.FC = () => {
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.4 }}
               >
-                <div className="space-y-8">
+                <div className="space-y-6 md:space-y-8">
                   {/* Basic Information Section */}
-                  <div className="bg-blue-50 border-l-4 border-blue-400 p-6 rounded-lg">
+                  <div className="bg-blue-50 border-l-4 border-blue-400 p-4 md:p-6 rounded-lg">
                     <h4 className="text-lg font-semibold text-blue-800 mb-4 flex items-center">
                       <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
                       Basic Information
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -787,7 +786,7 @@ const CandidateForm: React.FC = () => {
                       </motion.div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Phone Number *
@@ -845,11 +844,11 @@ const CandidateForm: React.FC = () => {
                   </div>
 
                   {/* Address Section */}
-                  <div className="bg-green-50 border-l-4 border-green-400 p-6 rounded-lg">
+                  <div className="bg-green-50 border-l-4 border-green-400 p-4 md:p-6 rounded-lg">
                     <h4 className="text-lg font-semibold text-green-800 mb-4">
                       Address
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Street
@@ -902,12 +901,12 @@ const CandidateForm: React.FC = () => {
                   </div>
 
                   {/* Professional Information Section */}
-                  <div className="bg-orange-50 border-l-4 border-orange-400 p-6 rounded-lg">
+                  <div className="bg-orange-50 border-l-4 border-orange-400 p-4 md:p-6 rounded-lg">
                     <h4 className="text-lg font-semibold text-orange-800 mb-4 flex items-center">
                       <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
                       Professional Information
                     </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Status
@@ -981,7 +980,7 @@ const CandidateForm: React.FC = () => {
                           className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
-                      <div>
+                      <div className="md:col-span-2 lg:col-span-1">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Expected Salary (₹)
                         </label>
@@ -997,7 +996,7 @@ const CandidateForm: React.FC = () => {
                   </div>
 
                   {/* Additional Notes Section */}
-                  <div className="bg-gray-50 border-l-4 border-gray-400 p-6 rounded-lg">
+                  <div className="bg-gray-50 border-l-4 border-gray-400 p-4 md:p-6 rounded-lg">
                     <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                       <span className="w-2 h-2 bg-gray-500 rounded-full mr-2"></span>
                       Additional Notes
@@ -2256,16 +2255,18 @@ const CandidateForm: React.FC = () => {
                       onChange={(e) => handleFileChange(e, "RESUME")}
                       className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                     />
-                    {uploadProgress["RESUME"] > 0 && (
+                    {(uploadProgress["RESUME"] || 0) > 0 && (
                       <div className="mt-2">
                         <div className="w-full bg-gray-200 rounded-full h-2.5">
                           <div
                             className="bg-blue-600 h-2.5 rounded-full"
-                            style={{ width: `${uploadProgress["RESUME"]}%` }}
+                            style={{
+                              width: `${uploadProgress["RESUME"] || 0}%`,
+                            }}
                           ></div>
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
-                          {uploadProgress["RESUME"]}% uploaded
+                          {uploadProgress["RESUME"] || 0}% uploaded
                         </p>
                       </div>
                     )}
@@ -2475,15 +2476,15 @@ const CandidateForm: React.FC = () => {
                               >
                                 <div>
                                   <p className="font-medium text-gray-800">
-                                    {doc.name}
+                                    {doc?.name || "Document"}
                                   </p>
                                   <p className="text-sm text-gray-500">
-                                    {doc.type}
+                                    {doc?.type || ""}
                                   </p>
                                 </div>
                                 <div className="flex space-x-2">
                                   <a
-                                    href={doc.url}
+                                    href={doc?.url || "#"}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="bg-blue-100 text-blue-700 px-3 py-1 rounded-md text-sm hover:bg-blue-200"

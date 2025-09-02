@@ -20,6 +20,7 @@ import {
   FaSpinner,
 } from "react-icons/fa";
 import { getStatusBadge } from "../../Common/StatusBadge";
+import api from "@/services/htdAPI";
 
 interface Education {
   degree: string;
@@ -66,13 +67,17 @@ interface Candidate {
   _id: string;
   name: string;
   email: string;
-  phone: string;
+  phone?: string;
+  contactNumber?: string;
   dateOfBirth: string;
   gender: string;
-  address: string;
-  city: string;
-  state: string;
-  pincode: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    pincode: string;
+    country?: string;
+  };
   status: string;
   highestQualification: string;
   previousSalary: number;
@@ -104,8 +109,9 @@ const CandidateDetail: React.FC = () => {
     const fetchCandidate = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`/api/candidates/${id}`);
-        setCandidate(response.data);
+        const response = await api.getCandidate(id);
+        console.log("Candidate data:", response);
+        setCandidate(response);
         setError(null);
       } catch (err) {
         console.error("Error fetching candidate:", err);
@@ -165,7 +171,7 @@ const CandidateDetail: React.FC = () => {
         month: "long",
         day: "numeric",
       });
-    } catch (error) {
+    } catch (error: unknown) {
       return "Invalid Date";
     }
   };
@@ -370,7 +376,7 @@ const CandidateDetail: React.FC = () => {
                       <FaPhone className="mr-1" /> Phone
                     </p>
                     <p className="mt-1 text-gray-900">
-                      {candidate.phone || "Not provided"}
+                      {candidate.phone || candidate.contactNumber || "Not provided"}
                     </p>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-md">
@@ -413,25 +419,31 @@ const CandidateDetail: React.FC = () => {
                       Street Address
                     </p>
                     <p className="mt-1 text-gray-900">
-                      {candidate.address || "Not provided"}
+                      {candidate.address?.street || "Not provided"}
                     </p>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-md">
                     <p className="text-sm font-medium text-gray-500">City</p>
                     <p className="mt-1 text-gray-900">
-                      {candidate.city || "Not provided"}
+                      {candidate.address?.city || "Not provided"}
                     </p>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-md">
                     <p className="text-sm font-medium text-gray-500">State</p>
                     <p className="mt-1 text-gray-900">
-                      {candidate.state || "Not provided"}
+                      {candidate.address?.state || "Not provided"}
                     </p>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-md">
                     <p className="text-sm font-medium text-gray-500">Pincode</p>
                     <p className="mt-1 text-gray-900">
-                      {candidate.pincode || "Not provided"}
+                      {candidate.address?.pincode || "Not provided"}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-md">
+                    <p className="text-sm font-medium text-gray-500">Country</p>
+                    <p className="mt-1 text-gray-900">
+                      {candidate.address?.country || "Not provided"}
                     </p>
                   </div>
                 </div>

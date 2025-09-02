@@ -152,7 +152,7 @@ export const htdAPI = {
     }
   },
 
-  getCandidate: async (id: string) => {
+  getCandidate: async (id: string | unknown) => {
     try {
       const response = await api.get(`/htd/candidates/${id}`);
       return response.data;

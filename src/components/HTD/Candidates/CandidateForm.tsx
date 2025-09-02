@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import type { AxiosProgressEvent } from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaPlus, FaTrash } from "react-icons/fa";
@@ -152,13 +153,6 @@ const CandidateForm: React.FC = () => {
     getLocationByPincode,
     isValidPincode,
   } = useLocationData();
-  const [selectedState, setSelectedState] = useState<{
-    value: string;
-    label: string;
-    isoCode?: string;
-  } | null>(null);
-  const [pincodeSuggestions, setPincodeSuggestions] = useState<any[]>([]);
-  const [cityLoading, setCityLoading] = useState(false);
 
   // Form field change handler with proper typing
   const handleChange = useCallback(
@@ -180,6 +174,15 @@ const CandidateForm: React.FC = () => {
               [field]: value as string,
             },
           };
+        }
+
+        // Coerce numeric fields to numbers to avoid string/NaN issues
+        if (name === "previousSalary" || name === "expectedSalary") {
+          const num = value === "" ? 0 : Number(value);
+          return {
+            ...prev,
+            [name]: Number.isFinite(num) ? num : 0,
+          } as CandidateFormData;
         }
 
         // Handle other form fields
@@ -236,14 +239,24 @@ const CandidateForm: React.FC = () => {
   ) => {
     setFormData((prev) => {
       const updatedEducation = [...prev.education];
-      updatedEducation[index] = {
-        ...updatedEducation[index],
-        [field]: value,
-      };
-      return {
-        ...prev,
-        education: updatedEducation,
-      };
+      const current = { ...updatedEducation[index] } as Education;
+      if (field === "yearOfPassing") {
+        const n = typeof value === "string" ? parseInt(value) : (value as number);
+        current.yearOfPassing = Number.isFinite(n) ? n : new Date().getFullYear();
+      } else if (field === "percentage") {
+        const n = typeof value === "string" ? parseFloat(value) : (value as number);
+        current.percentage = Number.isFinite(n) ? n : 0;
+      } else if (field === "degree") {
+        current.degree = String(value);
+      } else if (field === "institution") {
+        current.institution = String(value);
+      } else if (field === "fieldOfStudy") {
+        current.fieldOfStudy = String(value);
+      } else if (field === "_id") {
+        current._id = String(value);
+      }
+      updatedEducation[index] = current;
+      return { ...prev, education: updatedEducation };
     });
   };
 
@@ -373,10 +386,7 @@ const CandidateForm: React.FC = () => {
 
           try {
             await api.post(`/candidates/${candidateId}/documents`, formData, {
-              onUploadProgress: (progressEvent: {
-                loaded: number;
-                total: number;
-              }) => {
+              onUploadProgress: (progressEvent: AxiosProgressEvent) => {
                 const percentCompleted = Math.round(
                   (progressEvent.loaded * 100) / (progressEvent.total || 1)
                 );
@@ -2503,18 +2513,18 @@ const CandidateForm: React.FC = () => {
             )}
           </AnimatePresence>
 
-          <div className="mt-8 flex justify-end space-x-3">
+          <div className="mt-8 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
             <button
               type="button"
               onClick={() => navigate("/htd/candidates")}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded-md transition duration-300 ease-in-out"
+              className="bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded-md transition duration-300 ease-in-out w-full sm:w-auto"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className={`bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md transition duration-300 ease-in-out flex items-center ${
+              className={`bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md transition duration-300 ease-in-out flex items-center w-full sm:w-auto ${
                 isLoading ? "opacity-70 cursor-not-allowed" : ""
               }`}
             >

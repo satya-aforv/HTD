@@ -106,7 +106,14 @@ const skillSchema = new mongoose.Schema({
 const documentSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ["RESUME", "OFFER_LETTER", "RELIEVING_LETTER", "BANK_STATEMENT", "ID_PROOF", "OTHER"],
+    enum: [
+      "RESUME",
+      "OFFER_LETTER",
+      "RELIEVING_LETTER",
+      "BANK_STATEMENT",
+      "ID_PROOF",
+      "OTHER",
+    ],
     required: true,
   },
   url: {
@@ -199,19 +206,25 @@ const candidateSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    
+
+    notes: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
     // Education Details
     education: [educationSchema],
-    
+
     // Experience Details
     experience: [experienceSchema],
-    
+
     // Career Gaps
     careerGaps: [careerGapSchema],
-    
+
     // Skills
     skills: [skillSchema],
-    
+
     // Documents
     documents: [documentSchema],
 
@@ -235,7 +248,7 @@ const candidateSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    
+
     isActive: {
       type: Boolean,
       default: true,
@@ -249,7 +262,7 @@ const candidateSchema = new mongoose.Schema(
 // Calculate total IT and Non-IT experience
 candidateSchema.methods.calculateExperience = function () {
   const itExperience = this.experience
-    .filter(exp => exp.type === "IT")
+    .filter((exp) => exp.type === "IT")
     .reduce((total, exp) => {
       const start = new Date(exp.startDate);
       const end = new Date(exp.endDate);
@@ -259,7 +272,7 @@ candidateSchema.methods.calculateExperience = function () {
     }, 0);
 
   const nonItExperience = this.experience
-    .filter(exp => exp.type === "NON-IT")
+    .filter((exp) => exp.type === "NON-IT")
     .reduce((total, exp) => {
       const start = new Date(exp.startDate);
       const end = new Date(exp.endDate);
@@ -278,7 +291,7 @@ candidateSchema.methods.calculateExperience = function () {
 // Generate client-facing profile
 candidateSchema.methods.generateClientProfile = function () {
   const experience = this.calculateExperience();
-  
+
   return {
     name: this.name,
     candidateId: this.candidateId,
@@ -286,9 +299,15 @@ candidateSchema.methods.generateClientProfile = function () {
     education: this.education,
     experience: this.experience,
     totalExperience: {
-      it: `${Math.floor(experience.itExperienceMonths / 12)} years, ${experience.itExperienceMonths % 12} months`,
-      nonIt: `${Math.floor(experience.nonItExperienceMonths / 12)} years, ${experience.nonItExperienceMonths % 12} months`,
-      total: `${Math.floor(experience.totalExperienceMonths / 12)} years, ${experience.totalExperienceMonths % 12} months`,
+      it: `${Math.floor(experience.itExperienceMonths / 12)} years, ${
+        experience.itExperienceMonths % 12
+      } months`,
+      nonIt: `${Math.floor(experience.nonItExperienceMonths / 12)} years, ${
+        experience.nonItExperienceMonths % 12
+      } months`,
+      total: `${Math.floor(experience.totalExperienceMonths / 12)} years, ${
+        experience.totalExperienceMonths % 12
+      } months`,
     },
     careerGaps: this.careerGaps,
     status: this.status,

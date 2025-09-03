@@ -11,6 +11,11 @@ const educationSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  fieldOfStudy: {
+    type: String,
+    required: true,
+    trim: true,
+  },
   yearOfPassing: {
     type: Number,
     required: true,
@@ -180,6 +185,20 @@ const candidateSchema = new mongoose.Schema(
         default: "India",
       },
     },
+
+    // Additional profile fields
+    highestQualification: {
+      type: String,
+      trim: true,
+    },
+    previousSalary: {
+      type: Number,
+      default: 0,
+    },
+    expectedSalary: {
+      type: Number,
+      default: 0,
+    },
     
     // Education Details
     education: [educationSchema],
@@ -195,14 +214,14 @@ const candidateSchema = new mongoose.Schema(
     
     // Documents
     documents: [documentSchema],
-    
+
     // Status
     status: {
       type: String,
       enum: ["HIRED", "IN_TRAINING", "DEPLOYED", "INACTIVE"],
       default: "HIRED",
     },
-    
+
     // Candidate ID
     candidateId: {
       type: String,
@@ -210,7 +229,7 @@ const candidateSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
-    
+
     // User account reference (if candidate has login access)
     user: {
       type: mongoose.Schema.Types.ObjectId,

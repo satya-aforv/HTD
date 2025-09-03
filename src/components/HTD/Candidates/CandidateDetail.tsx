@@ -376,7 +376,9 @@ const CandidateDetail: React.FC = () => {
                       <FaPhone className="mr-1" /> Phone
                     </p>
                     <p className="mt-1 text-gray-900">
-                      {candidate.phone || candidate.contactNumber || "Not provided"}
+                      {candidate.phone ||
+                        candidate.contactNumber ||
+                        "Not provided"}
                     </p>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-md">

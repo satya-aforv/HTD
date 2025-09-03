@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import type { AxiosProgressEvent } from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -154,6 +155,27 @@ const CandidateForm: React.FC = () => {
     isValidPincode,
   } = useLocationData();
 
+  // Stable local max date for DOB = today - 18 years
+  const dobMax = useMemo(() => {
+    const d = new Date();
+    // Normalize to local start of day to avoid timezone shifts
+    return d.toISOString().split("T")[0];
+  }, []);
+
+  // Stable local min date for DOB = today - 100 years (sensible lower bound)
+  const dobMin = useMemo(() => {
+    const today = new Date();
+    const minDate = new Date();
+    minDate.setFullYear(today.getFullYear() - 100);
+    const minDateString = minDate.toISOString().split("T")[0];
+
+    // Calculate date 18 years ago
+    const minAdultDate = new Date();
+    minAdultDate.setFullYear(today.getFullYear() - 18);
+    const minAdultDateString = minAdultDate.toISOString().split("T")[0];
+    return minAdultDateString;
+  }, []);
+
   // Form field change handler with proper typing
   const handleChange = useCallback(
     (
@@ -241,10 +263,14 @@ const CandidateForm: React.FC = () => {
       const updatedEducation = [...prev.education];
       const current = { ...updatedEducation[index] } as Education;
       if (field === "yearOfPassing") {
-        const n = typeof value === "string" ? parseInt(value) : (value as number);
-        current.yearOfPassing = Number.isFinite(n) ? n : new Date().getFullYear();
+        const n =
+          typeof value === "string" ? parseInt(value) : (value as number);
+        current.yearOfPassing = Number.isFinite(n)
+          ? n
+          : new Date().getFullYear();
       } else if (field === "percentage") {
-        const n = typeof value === "string" ? parseFloat(value) : (value as number);
+        const n =
+          typeof value === "string" ? parseFloat(value) : (value as number);
         current.percentage = Number.isFinite(n) ? n : 0;
       } else if (field === "degree") {
         current.degree = String(value);
@@ -297,6 +323,20 @@ const CandidateForm: React.FC = () => {
             }
           };
 
+          // Helper function to map backend experience item to frontend shape
+          const mapExperience = (
+            exp: any,
+            coercedType: "IT" | "NON_IT"
+          ): Experience => ({
+            company: exp?.company ?? exp?.companyName ?? "",
+            role: exp?.role ?? "",
+            startDate: formatDateForInput(exp?.startDate),
+            endDate: formatDateForInput(exp?.endDate),
+            description: exp?.description ?? "",
+            type: coercedType,
+            _id: exp?._id,
+          });
+
           // Safely merge with initial values to prevent undefined overrides
           const formattedData: CandidateFormData = {
             ...initialFormData,
@@ -311,21 +351,48 @@ const CandidateForm: React.FC = () => {
               ...(candidateData.address || {}),
             },
             dateOfBirth: formatDateForInput(candidateData.dateOfBirth),
+            gender: (candidateData.gender ?? "").toString().toLowerCase(),
             education:
-              candidateData.education?.map((edu: Education) => ({ ...edu })) ||
-              [],
+              candidateData.education?.map((edu: any) => ({
+                degree: edu?.degree ?? "",
+                institution: edu?.institution ?? "",
+                fieldOfStudy: edu?.fieldOfStudy ?? "",
+                yearOfPassing: Number.isFinite(edu?.yearOfPassing)
+                  ? edu.yearOfPassing
+                  : new Date().getFullYear(),
+                percentage: Number.isFinite(edu?.percentage)
+                  ? edu.percentage
+                  : 0,
+                _id: edu?._id,
+              })) || [],
+            // Backend stores a single `experience` array with type as "IT" | "NON-IT" and companyName
+            // Split into UI-specific arrays for rendering/editing without changing submit payload structure
             itExperience:
-              candidateData.itExperience?.map((exp: Experience) => ({
+              candidateData.experience
+                ?.filter(
+                  (exp: any) =>
+                    (exp?.type ?? "").toString().toUpperCase() === "IT"
+                )
+                .map((exp: any) => mapExperience(exp, "IT")) ||
+              candidateData.itExperience?.map((exp: any) => ({
                 ...exp,
                 startDate: formatDateForInput(exp.startDate),
                 endDate: formatDateForInput(exp.endDate),
-              })) || [],
+              })) ||
+              [],
             nonItExperience:
-              candidateData.nonItExperience?.map((exp: Experience) => ({
+              candidateData.experience
+                ?.filter(
+                  (exp: any) =>
+                    (exp?.type ?? "").toString().toUpperCase() === "NON-IT"
+                )
+                .map((exp: any) => mapExperience(exp, "NON_IT")) ||
+              candidateData.nonItExperience?.map((exp: any) => ({
                 ...exp,
                 startDate: formatDateForInput(exp.startDate),
                 endDate: formatDateForInput(exp.endDate),
-              })) || [],
+              })) ||
+              [],
             careerGaps:
               candidateData.careerGaps?.map((gap: CareerGap) => ({
                 ...gap,
@@ -340,6 +407,25 @@ const CandidateForm: React.FC = () => {
           };
 
           setFormData(formattedData);
+          // Load cities for existing state to support location auto-search in edit mode
+          // Only attempt when country is India to match our location dataset
+          if (formattedData.address?.state) {
+            const countryLc = (
+              formattedData.address.country || ""
+            ).toLowerCase();
+            if (countryLc === "india" || countryLc === "in") {
+              try {
+                await loadCitiesForState(formattedData.address.state);
+              } catch (e) {
+                // non-blocking
+                console.warn(
+                  "Failed to load cities for state",
+                  formattedData.address.state,
+                  e
+                );
+              }
+            }
+          }
           setError(null);
         } catch (err: unknown) {
           console.error("Error fetching candidate:", err);
@@ -362,6 +448,18 @@ const CandidateForm: React.FC = () => {
     if (!formData.email?.trim()) return "Email is required";
     if (!formData.contactNumber?.trim()) return "Contact number is required";
     if (!formData.dateOfBirth) return "Date of birth is required";
+
+    // Enforce 18+ age restriction
+    const dob = new Date(formData.dateOfBirth);
+    if (!Number.isNaN(dob.getTime())) {
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+        age--;
+      }
+      if (age < 18) return "Candidate must be at least 18 years old";
+    }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -441,11 +539,15 @@ const CandidateForm: React.FC = () => {
 
       // Redirect after a short delay
       setTimeout(() => navigate("/htd/candidates"), 1500);
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error("Failed to save candidate:", err);
       const errorMessage =
-        err instanceof Error
-          ? `Failed to save candidate: ${err.message}`
+        err?.message || err?.response?.data?.errors?.length > 0
+          ? `Failed to save candidate: ${
+              err.message
+            } - ${err?.response?.data?.errors
+              .map((er: any) => er.msg)
+              .join(", ")}`
           : "An unexpected error occurred. Please try again.";
       setError(errorMessage);
     } finally {
@@ -831,6 +933,9 @@ const CandidateForm: React.FC = () => {
                           name="dateOfBirth"
                           value={formData.dateOfBirth}
                           onChange={handleChange}
+                          // min={dobMin}
+                          // Max date selectable is today minus 18 years (computed once in local time)
+                          // max={dobMax}
                           className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
@@ -845,9 +950,9 @@ const CandidateForm: React.FC = () => {
                           className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="">Select Gender</option>
-                          <option value="Male">Male</option>
-                          <option value="Female">Female</option>
-                          <option value="Other">Other</option>
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                          <option value="other">Other</option>
                         </select>
                       </div>
                     </div>
@@ -980,7 +1085,10 @@ const CandidateForm: React.FC = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Previous Salary (₹)
+                          Previous Salary (₹){" "}
+                          <span className="text-gray-400 text-xs">
+                            (in LPA)
+                          </span>
                         </label>
                         <input
                           type="number"
@@ -992,7 +1100,10 @@ const CandidateForm: React.FC = () => {
                       </div>
                       <div className="md:col-span-2 lg:col-span-1">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Expected Salary (₹)
+                          Expected Salary (₹){" "}
+                          <span className="text-gray-400 text-xs">
+                            (in LPA)
+                          </span>
                         </label>
                         <input
                           type="number"

@@ -1,55 +1,53 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  FaEdit, 
-  FaArrowLeft, 
-  FaCalendarAlt, 
-  FaUser, 
-  FaMoneyBillWave, 
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  FaEdit,
+  FaArrowLeft,
+  FaCalendarAlt,
+  FaUser,
+  FaMoneyBillWave,
   FaFileAlt,
   FaFilePdf,
-  FaPrint
-} from 'react-icons/fa';
-import { motion, AnimatePresence } from 'framer-motion';
-import toast from 'react-hot-toast';
-import { paymentAPI, Payment } from '../../../services/paymentAPI';
-import LoadingSpinner from '../../Common/LoadingSpinner';
-import ErrorBoundary from '../../Common/ErrorBoundary';
-import { format } from 'date-fns';
-import { getStatusBadge } from '../../Common/StatusBadge';
+  FaPrint,
+} from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+import toast from "react-hot-toast";
+import { paymentAPI, Payment } from "../../../services/paymentAPI";
+import LoadingSpinner from "../../Common/LoadingSpinner";
+import ErrorBoundary from "../../Common/ErrorBoundary";
+import { format } from "date-fns";
+import { getStatusBadge } from "../../Common/StatusBadge";
 
 const formatDate = (dateString: string) => {
   try {
-    return format(new Date(dateString), 'MMMM d, yyyy');
+    return format(new Date(dateString), "MMMM d, yyyy");
   } catch (error) {
-    console.error('Error formatting date:', error);
-    return 'Invalid date';
+    console.error("Error formatting date:", error);
+    return "Invalid date";
   }
 };
 
 const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
   }).format(amount);
 };
 
- 
-
 const getPaymentTypeBadgeClass = (type: string) => {
   switch (type.toLowerCase()) {
-    case 'stipend':
-      return 'bg-purple-100 text-purple-800';
-    case 'salary':
-      return 'bg-blue-100 text-blue-800';
-    case 'bonus':
-      return 'bg-green-100 text-green-800';
-    case 'reimbursement':
-      return 'bg-yellow-100 text-yellow-800';
+    case "stipend":
+      return "bg-purple-100 text-purple-800";
+    case "salary":
+      return "bg-blue-100 text-blue-800";
+    case "bonus":
+      return "bg-green-100 text-green-800";
+    case "reimbursement":
+      return "bg-yellow-100 text-yellow-800";
     default:
-      return 'bg-gray-100 text-gray-800';
+      return "bg-gray-100 text-gray-800";
   }
 };
 
@@ -63,26 +61,26 @@ const PaymentDetail = () => {
 
   const handleGenerateReceipt = useCallback(async () => {
     if (!id) return;
-    
+
     try {
-      toast.loading('Generating payment receipt...');
+      toast.loading("Generating payment receipt...");
       const blob = await paymentAPI.generateReceipt(id);
-      
+
       // Create a download link
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', `payment-receipt-${id}.pdf`);
+      link.setAttribute("download", `payment-receipt-${id}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
-      
+
       toast.dismiss();
-      toast.success('Payment receipt generated successfully');
+      toast.success("Payment receipt generated successfully");
     } catch (error) {
       toast.dismiss();
-      console.error('Error generating payment receipt:', error);
-      toast.error('Failed to generate payment receipt');
+      console.error("Error generating payment receipt:", error);
+      toast.error("Failed to generate payment receipt");
     }
   }, [id]);
 
@@ -102,7 +100,11 @@ const PaymentDetail = () => {
         const paymentData = await paymentAPI.getPayment(id as string);
         setPayment(paymentData);
       } catch (error: unknown) {
-        setError(error instanceof Error ? error : new Error('An unknown error occurred'));
+        setError(
+          error instanceof Error
+            ? error
+            : new Error("An unknown error occurred")
+        );
       } finally {
         setLoading(false);
       }
@@ -124,17 +126,17 @@ const PaymentDetail = () => {
 
   return (
     <ErrorBoundary>
-      <div className={`p-6 print:p-0 ${enablePrint ? 'print-mode' : ''}`}>
+      <div className={`p-6 print:p-0 ${enablePrint ? "print-mode" : ""}`}>
         <AnimatePresence>
           {!enablePrint && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               className="flex justify-between items-center mb-6 print:hidden"
             >
               <div className="flex items-center gap-4">
                 <button
-                  onClick={() => navigate('/htd/payments')}
+                  onClick={() => navigate("/htd/payments")}
                   className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-full transition-colors duration-200"
                   aria-label="Back to payments"
                 >
@@ -176,7 +178,7 @@ const PaymentDetail = () => {
           <div className="flex flex-col md:flex-row justify-between">
             <div className="mb-4 md:mb-0">
               <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                Payment to {payment.candidateId.name}
+                Payment to {payment.candidate?.name || "N/A"}
               </h2>
               <div className="flex items-center gap-2 text-gray-600 mb-2">
                 <FaCalendarAlt />
@@ -184,18 +186,24 @@ const PaymentDetail = () => {
               </div>
               <div className="flex items-center gap-2 text-gray-600">
                 <FaUser />
-                <span>{payment.candidateId.email}</span>
-                {payment.candidateId.phone && (
+                <span>{payment.candidate.email || "N/A"}</span>
+                {payment.candidate.phone ? (
                   <>
                     <span className="text-gray-400">|</span>
-                    <span>{payment.candidateId.phone}</span>
+                    <span>{payment.candidate.phone || "N/A"}</span>
                   </>
+                ) : (
+                  "N/A"
                 )}
               </div>
             </div>
             <div className="flex flex-col items-end">
               <div className="flex items-center gap-2 mb-2">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getPaymentTypeBadgeClass(payment.type)}`}>
+                <span
+                  className={`px-3 py-1 rounded-full text-sm font-medium ${getPaymentTypeBadgeClass(
+                    payment.type
+                  )}`}
+                >
                   {payment.type}
                 </span>
                 {getStatusBadge(payment.status)}
@@ -222,43 +230,59 @@ const PaymentDetail = () => {
                 <div>
                   <div className="text-sm text-gray-500">Payment Type</div>
                   <div className="font-medium mb-4">{payment.type}</div>
-                  
+
                   {Object.keys(payment.bankDetails || {}).length > 0 ? (
                     <div className="space-y-4">
                       {payment.bankDetails?.accountName && (
                         <div>
-                          <div className="text-sm text-gray-500">Account Name</div>
-                          <div className="font-medium">{payment.bankDetails?.accountName}</div>
+                          <div className="text-sm text-gray-500">
+                            Account Name
+                          </div>
+                          <div className="font-medium">
+                            {payment.bankDetails?.accountName}
+                          </div>
                         </div>
                       )}
                       {payment.bankDetails?.accountNumber && (
                         <div>
-                          <div className="text-sm text-gray-500">Account Number</div>
-                          <div className="font-medium">{payment.bankDetails?.accountNumber}</div>
+                          <div className="text-sm text-gray-500">
+                            Account Number
+                          </div>
+                          <div className="font-medium">
+                            {payment.bankDetails?.accountNumber}
+                          </div>
                         </div>
                       )}
                       {payment.bankDetails?.bankName && (
                         <div>
                           <div className="text-sm text-gray-500">Bank Name</div>
-                          <div className="font-medium">{payment.bankDetails?.bankName}</div>
+                          <div className="font-medium">
+                            {payment.bankDetails?.bankName}
+                          </div>
                         </div>
                       )}
                       {payment.bankDetails?.ifscCode && (
                         <div>
                           <div className="text-sm text-gray-500">IFSC Code</div>
-                          <div className="font-medium">{payment.bankDetails?.ifscCode}</div>
+                          <div className="font-medium">
+                            {payment.bankDetails?.ifscCode}
+                          </div>
                         </div>
                       )}
                     </div>
                   ) : (
-                    <div className="text-gray-500">No bank details provided</div>
+                    <div className="text-gray-500">
+                      No bank details provided
+                    </div>
                   )}
                 </div>
               </div>
 
               {/* Payment Proof */}
               <div className="mt-6">
-                <h4 className="text-md font-medium text-gray-700 mb-2">Payment Proof</h4>
+                <h4 className="text-md font-medium text-gray-700 mb-2">
+                  Payment Proof
+                </h4>
                 {payment.proofUrl ? (
                   <div>
                     <a

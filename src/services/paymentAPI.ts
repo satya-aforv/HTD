@@ -26,7 +26,7 @@ export interface PaymentFormData {
 
 export interface Payment {
   _id: string;
-  candidateId: {
+  candidate: {
     _id: string;
     name: string;
     email: string;

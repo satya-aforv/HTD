@@ -92,7 +92,6 @@ const TrainingsList: React.FC = () => {
     fetchTrainings();
   }, [fetchTrainings]);
 
-
   const handleDelete = async (id?: string) => {
     if (!id) {
       toast.error("Invalid training ID");
@@ -232,7 +231,7 @@ const TrainingsList: React.FC = () => {
                   <th
                     scope="col"
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                    onClick={() => handleSort("candidateId.name")}
+                    onClick={() => handleSort("candidate.name")}
                   >
                     Candidate
                   </th>
@@ -289,7 +288,7 @@ const TrainingsList: React.FC = () => {
                   <tr key={training._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        {training?.candidateId?.name || "N/A"}
+                        {training?.candidate?.name || "N/A"}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -328,12 +327,12 @@ const TrainingsList: React.FC = () => {
                         training.skillsAcquired.length > 0 ? (
                           training.skillsAcquired
                             .slice(0, 3)
-                            .map((skill: string, index: number) => (
+                            .map((skill: any, index: number) => (
                               <span
                                 key={index}
                                 className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
                               >
-                                {skill}
+                                {typeof skill === "string" ? skill : skill?.name || ""}
                               </span>
                             ))
                         ) : (

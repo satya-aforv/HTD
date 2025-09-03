@@ -29,15 +29,26 @@ export const getAllTrainings = async (req, res) => {
       page: parseInt(page, 10),
       limit: parseInt(limit, 10),
       sort: { createdAt: -1 },
-      populate: 'candidate',
     };
     
-    const trainings = await Training.find(query)
-      .skip((options.page - 1) * options.limit)
-      .limit(options.limit)
-      .sort(options.sort)
-      .populate(options.populate);
-    
+    const pipeline = [
+      { $match: query },
+      { $sort: options.sort },
+      { $skip: (options.page - 1) * options.limit },
+      { $limit: options.limit },
+      {
+        $lookup: {
+          from: 'candidates',
+          localField: 'candidate',
+          foreignField: '_id',
+          as: 'candidate',
+        },
+      },
+      { $unwind: { path: '$candidate', preserveNullAndEmptyArrays: true } },
+    ];
+
+    const trainings = await Training.aggregate(pipeline);
+
     const total = await Training.countDocuments(query);
     
     res.status(200).json({

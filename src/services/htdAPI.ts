@@ -41,7 +41,7 @@ export interface Training {
     | "cancelled";
   startDate: string;
   endDate: string | null;
-  candidateId?: {
+  candidate?: {
     _id?: string;
     name?: string;
     email?: string;

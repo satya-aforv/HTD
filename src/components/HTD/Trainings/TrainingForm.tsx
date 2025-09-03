@@ -5,11 +5,35 @@ import { FaPlus, FaTrash, FaSave, FaArrowLeft } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 import { htdAPI } from "../../../services/htdAPI";
 import FloatingParticles from "../../Common/FloatingParticles";
-import type { Training, Module, Evaluation, Expense } from "../../../types/htd";
+import type { Training as ServiceTraining } from "../../../services/htdAPI";
 
 interface Candidate {
   _id: string;
   name: string;
+}
+
+type TrainingStatus = "PLANNED" | "IN_PROGRESS" | "COMPLETED" | "DISCONTINUED";
+
+type SkillItem = string | { name: string };
+
+interface FormTraining {
+  candidate: string;
+  startDate: string;
+  expectedEndDate: string;
+  status: TrainingStatus;
+  modules: unknown[];
+  skillsAcquired: SkillItem[];
+  notes: string;
+}
+
+interface ServerTraining {
+  candidate: string | { _id: string };
+  startDate?: string;
+  expectedEndDate?: string;
+  status?: TrainingStatus;
+  modules?: unknown[];
+  skillsAcquired?: Array<string | { name: string }>;
+  notes?: string;
 }
 
 const TrainingForm: React.FC = () => {
@@ -20,13 +44,14 @@ const TrainingForm: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [errorList, setErrorList] = useState<string[]>([]);
 
   // Initial training state aligned with backend schema
-  const [training, setTraining] = useState<Partial<Training>>({
-    candidateId: "",
+  const [training, setTraining] = useState<FormTraining>({
+    candidate: "",
     startDate: "",
-    endDate: "",
-    status: "ongoing",
+    expectedEndDate: "",
+    status: "PLANNED",
     modules: [],
     skillsAcquired: [],
     notes: "",
@@ -40,15 +65,55 @@ const TrainingForm: React.FC = () => {
       try {
         const response = await htdAPI.getCandidates({});
         setCandidates(response.candidates);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Error fetching candidates:", error);
-        toast.error("Failed to fetch candidates");
+        const msgs = getErrorList(error as unknown);
+        setErrorList(msgs);
+        toast.error(getErrorMessage(error as unknown));
       }
     };
 
-    fetchCandidates();
-    setLoading(false);
-  }, []);
+    const fetchTrainingIfEdit = async () => {
+      if (!isEditMode || !id) return;
+      try {
+        const t: ServerTraining = (await htdAPI.getTraining(
+          id
+        )) as unknown as ServerTraining;
+        const candidateVal =
+          typeof t.candidate === "string"
+            ? t.candidate
+            : t.candidate?._id || "";
+        const start = t.startDate
+          ? new Date(t.startDate).toISOString().slice(0, 10)
+          : "";
+        const expected = t.expectedEndDate
+          ? new Date(t.expectedEndDate).toISOString().slice(0, 10)
+          : "";
+        const skills = Array.isArray(t.skillsAcquired)
+          ? (t.skillsAcquired
+              .map((s) => (typeof s === "string" ? s : { name: s.name }))
+              .filter(Boolean) as SkillItem[])
+          : [];
+        setTraining({
+          candidate: candidateVal,
+          startDate: start,
+          expectedEndDate: expected,
+          status: t.status || "PLANNED",
+          modules: t.modules || [],
+          skillsAcquired: skills,
+          notes: t.notes || "",
+        });
+      } catch (error: unknown) {
+        console.error("Error fetching training:", error);
+        toast.error(getErrorMessage(error as unknown));
+        setErrorList(getErrorList(error as unknown));
+      }
+    };
+
+    Promise.all([fetchCandidates(), fetchTrainingIfEdit()]).finally(() =>
+      setLoading(false)
+    );
+  }, [id, isEditMode]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -56,8 +121,50 @@ const TrainingForm: React.FC = () => {
     >
   ) => {
     const { name, value } = e.target;
-    setTraining((prev) => ({ ...prev, [name]: value }));
+    setTraining((prev) => ({ ...prev, [name]: value } as FormTraining));
   };
+
+  const getErrorMessage = React.useCallback((err: unknown): string => {
+    const e = err as {
+      response?: {
+        data?: { errors?: Array<{ msg?: string }>; message?: string };
+      };
+      message?: string;
+    };
+    if (Array.isArray(e?.response?.data?.errors)) {
+      const errorMessages = e
+        .response!.data!.errors!.map((er) => er.msg)
+        .filter(Boolean)
+        .join(", ");
+
+      if (errorMessages) {
+        return `Failed to save training: ${errorMessages}`;
+      }
+    }
+
+    if (e?.response?.data?.message) return e.response.data.message;
+
+    if (e?.message) return e.message;
+
+    return "An unexpected error occurred. Please try again.";
+  }, []);
+
+  const getErrorList = React.useCallback(
+    (err: unknown): string[] => {
+      const e = err as {
+        response?: { data?: { errors?: Array<{ msg?: string }> } };
+      };
+      if (Array.isArray(e?.response?.data?.errors)) {
+        const msgs = e
+          .response!.data!.errors!.map((er) => er.msg)
+          .filter(Boolean) as string[];
+        if (msgs.length) return msgs;
+      }
+      const msg = getErrorMessage(err);
+      return msg ? [msg] : [];
+    },
+    [getErrorMessage]
+  );
 
   const addSkill = () => {
     const skill = newSkill.trim();
@@ -66,8 +173,12 @@ const TrainingForm: React.FC = () => {
       return;
     }
     setTraining((prev) => {
-      const existing = (prev.skillsAcquired || []);
-      const isDuplicate = existing.some((s: string) => s.trim().toLowerCase() === skill.toLowerCase());
+      const existing = prev.skillsAcquired || [];
+      const isDuplicate = existing.some(
+        (s: SkillItem) =>
+          (typeof s === "string" ? s : s.name).trim().toLowerCase() ===
+          skill.toLowerCase()
+      );
       if (isDuplicate) {
         toast.error("Skill already added");
         return prev;
@@ -90,26 +201,62 @@ const TrainingForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!training.candidateId || !training.startDate) {
+    if (
+      !training.candidate ||
+      !training.startDate ||
+      !training.expectedEndDate
+    ) {
       toast.error("Please fill in all required fields");
+      const msgs: string[] = [];
+      if (!training.candidate) msgs.push("Candidate is required");
+      if (!training.startDate) msgs.push("Start Date is required");
+      if (!training.expectedEndDate) msgs.push("Expected End Date is required");
+      setErrorList(msgs);
       return;
     }
 
     setSubmitting(true);
+    setErrorList([]);
 
     try {
+      // Build payload matching backend schema
+      const payload: ServerTraining = {
+        candidate: training.candidate,
+        startDate: training.startDate,
+        expectedEndDate: training.expectedEndDate,
+        status: training.status || "PLANNED",
+        modules: training.modules || [],
+        notes: training.notes || "",
+      };
+
+      if (
+        Array.isArray(training.skillsAcquired) &&
+        training.skillsAcquired.length
+      ) {
+        payload.skillsAcquired = training.skillsAcquired.map((s) =>
+          typeof s === "string" ? { name: s } : s
+        );
+      }
+
       if (isEditMode && id) {
-        await htdAPI.updateTraining(id, training);
+        // Do not send candidate/trainingId on update (backend ignores)
+        await htdAPI.updateTraining(
+          id,
+          payload as unknown as Partial<ServiceTraining>
+        );
         toast.success("Training updated successfully");
       } else {
-        await htdAPI.createTraining(training);
+        await htdAPI.createTraining(
+          payload as unknown as Partial<ServiceTraining>
+        );
         toast.success("Training created successfully");
       }
 
       navigate("/htd/trainings");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error saving training:", error);
-      toast.error(error.response?.data?.message || "Failed to save training");
+      toast.error(getErrorMessage(error as unknown));
+      setErrorList(getErrorList(error as unknown));
     } finally {
       setSubmitting(false);
     }
@@ -164,6 +311,18 @@ const TrainingForm: React.FC = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
         >
+          {errorList.length > 0 && (
+            <div className="bg-red-50 border border-red-300 text-red-800 rounded-md p-4">
+              <div className="font-semibold mb-2">
+                Please address the following:
+              </div>
+              <ul className="list-disc pl-5 space-y-1">
+                {errorList.map((msg, idx) => (
+                  <li key={idx}>{msg}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           {/* Basic Information Section */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -182,8 +341,8 @@ const TrainingForm: React.FC = () => {
                     Candidate *
                   </label>
                   <select
-                    name="candidateId"
-                    value={training.candidateId || ""}
+                    name="candidate"
+                    value={training.candidate || ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
@@ -209,12 +368,10 @@ const TrainingForm: React.FC = () => {
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="ongoing">Ongoing</option>
-                    <option value="completed">Completed</option>
-                    <option value="upcoming">Upcoming</option>
-                    <option value="active">Active</option>
-                    <option value="on-hold">On Hold</option>
-                    <option value="cancelled">Cancelled</option>
+                    <option value="PLANNED">Planned</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="COMPLETED">Completed</option>
+                    <option value="DISCONTINUED">Discontinued</option>
                   </select>
                 </div>
 
@@ -233,17 +390,18 @@ const TrainingForm: React.FC = () => {
                   />
                 </div>
 
-                {/* End Date */}
+                {/* Expected End Date */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    End Date
+                    Expected End Date *
                   </label>
                   <input
                     type="date"
-                    name="endDate"
-                    value={training.endDate || ""}
+                    name="expectedEndDate"
+                    value={training.expectedEndDate || ""}
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
                   />
                 </div>
               </div>
@@ -288,23 +446,23 @@ const TrainingForm: React.FC = () => {
 
               {/* Skills List */}
               <div className="space-y-2">
-                {(training.skillsAcquired || []).map(
-                  (skill: string, index: number) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between bg-white p-3 rounded-md border"
+                {(training.skillsAcquired || []).map((skill, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between bg-white p-3 rounded-md border"
+                  >
+                    <span className="font-medium">
+                      {typeof skill === "string" ? skill : skill.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeSkill(index)}
+                      className="text-red-500 hover:text-red-700"
                     >
-                      <span className="font-medium">{skill}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeSkill(index)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
-                  )
-                )}
+                      <FaTrash />
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           </motion.div>

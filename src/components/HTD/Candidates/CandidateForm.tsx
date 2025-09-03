@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import type { AxiosProgressEvent } from "axios";
@@ -6,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaPlus, FaTrash } from "react-icons/fa";
 import { useLocationData } from "../../../hooks/useLocationData";
 import api from "../../../services/api";
+import toast from "react-hot-toast";
 
 // Define interfaces for type safety
 interface Education {
@@ -137,6 +139,10 @@ const CandidateForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  // Collect multiple error messages for top alert list
+  const [errorList, setErrorList] = useState<string[]>([]);
+  // Track invalid fields for per-field red borders (supports nested arrays by index)
+  const [invalidFields, setInvalidFields] = useState<Record<string, any>>({});
   const [activeTab, setActiveTab] = useState<string>("personal");
   const [fileUploads, setFileUploads] = useState<Record<string, File | null>>(
     {}
@@ -155,25 +161,289 @@ const CandidateForm: React.FC = () => {
     isValidPincode,
   } = useLocationData();
 
-  // Stable local max date for DOB = today - 18 years
+  // Ordered tabs for step navigation
+  const tabs = useMemo(
+    () => ["personal", "education", "experience", "skills", "documents"],
+    []
+  );
+
+  const isFirstTab = activeTab === tabs[0];
+  const isLastTab = activeTab === tabs[tabs.length - 1];
+
+  const goToNextTab = useCallback(() => {
+    const idx = tabs.indexOf(activeTab);
+    if (idx > -1 && idx < tabs.length - 1) setActiveTab(tabs[idx + 1]);
+  }, [activeTab, tabs]);
+
+  const goToPrevTab = useCallback(() => {
+    const idx = tabs.indexOf(activeTab);
+    if (idx > 0) setActiveTab(tabs[idx - 1]);
+  }, [activeTab, tabs]);
+
+  // Email regex reused across validation and field checks
+  const emailRegex = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/, []);
+
+  const isAdult = useCallback((dateStr: string): boolean => {
+    if (!dateStr) return false;
+    const dob = new Date(dateStr);
+    if (Number.isNaN(dob.getTime())) return false;
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+    return age >= 18;
+  }, []);
+
+  const computeInvalidFields = useCallback(
+    (fd: CandidateFormData): Record<string, boolean> => {
+      const invalid: Record<string, boolean> = {};
+      if (!fd.name?.trim()) invalid.name = true;
+      if (!fd.email?.trim() || !emailRegex.test(fd.email)) invalid.email = true;
+      if (!fd.contactNumber?.trim()) invalid.contactNumber = true;
+      if (!fd.dateOfBirth || !isAdult(fd.dateOfBirth))
+        invalid.dateOfBirth = true;
+      // Newly added personal tab fields
+      if (!fd.alternateContactNumber?.trim())
+        invalid.alternateContactNumber = true;
+      if (!fd.gender?.trim()) invalid.gender = true;
+      if (!fd.highestQualification?.trim()) invalid.highestQualification = true;
+      if (!Number.isFinite(fd.previousSalary)) invalid.previousSalary = true;
+      if (!Number.isFinite(fd.expectedSalary)) invalid.expectedSalary = true;
+      if (!fd.notes?.trim()) invalid.notes = true;
+      return invalid;
+    },
+    [emailRegex, isAdult]
+  );
+
+  // Validate only the current tab.
+  const validateCurrentTab = useCallback((): boolean => {
+    const messages: string[] = [];
+    const nextInvalid: Record<string, any> = {};
+
+    if (activeTab === "personal") {
+      const allInvalids = computeInvalidFields(formData);
+      const keys = [
+        "name",
+        "email",
+        "contactNumber",
+        "alternateContactNumber",
+        "dateOfBirth",
+        "gender",
+        "maritalStatus",
+        "currentAddress",
+        "permanentAddress",
+        "currentCity",
+        "permanentCity",
+        "currentPincode",
+        "permanentPincode",
+        "currentState",
+        "permanentState",
+        "currentCountry",
+        "permanentCountry",
+        "highestQualification",
+        "previousSalary",
+        "expectedSalary",
+        "notes",
+      ] as const;
+      keys.forEach((k) => {
+        if (allInvalids[k]) {
+          nextInvalid[k] = true;
+          if (k === "name") messages.push("Full Name is required.");
+          if (k === "email") messages.push("A valid Email is required.");
+          if (k === "contactNumber") messages.push("Phone Number is required.");
+          if (k === "alternateContactNumber")
+            messages.push("Alternate Phone Number is required.");
+          if (k === "dateOfBirth")
+            messages.push("Date of Birth must indicate age 18 or above.");
+          if (k === "gender") messages.push("Gender is required.");
+          if (k === "maritalStatus")
+            messages.push("Marital Status is required.");
+          if (k === "currentAddress")
+            messages.push("Current Address is required.");
+          if (k === "permanentAddress")
+            messages.push("Permanent Address is required.");
+          if (k === "currentCity") messages.push("Current City is required.");
+          if (k === "permanentCity")
+            messages.push("Permanent City is required.");
+          if (k === "currentPincode")
+            messages.push("Current Pincode is required.");
+          if (k === "permanentPincode")
+            messages.push("Permanent Pincode is required.");
+          if (k === "currentState") messages.push("Current State is required.");
+          if (k === "permanentState")
+            messages.push("Permanent State is required.");
+          if (k === "currentCountry")
+            messages.push("Current Country is required.");
+          if (k === "permanentCountry")
+            messages.push("Permanent Country is required.");
+          if (k === "highestQualification")
+            messages.push("Highest Qualification is required.");
+          if (k === "previousSalary")
+            messages.push("Previous Salary is required.");
+          if (k === "expectedSalary")
+            messages.push("Expected Salary is required.");
+          if (k === "notes") messages.push("Notes is required.");
+        }
+      });
+    }
+
+    if (activeTab === "education") {
+      formData.education.forEach((edu, idx) => {
+        const rowInvalid: Record<string, boolean> = {};
+        if (!String(edu.degree || "").trim())
+          (rowInvalid.degree = true),
+            messages.push(`Education #${idx + 1}: Degree is required.`);
+        if (!String(edu.institution || "").trim())
+          (rowInvalid.institution = true),
+            messages.push(`Education #${idx + 1}: Institution is required.`);
+        if (!String(edu.fieldOfStudy || "").trim())
+          (rowInvalid.fieldOfStudy = true),
+            messages.push(`Education #${idx + 1}: Field of Study is required.`);
+        if (!Number.isFinite(edu.yearOfPassing))
+          (rowInvalid.yearOfPassing = true),
+            messages.push(
+              `Education #${idx + 1}: Year of Passing is required.`
+            );
+        if (!Number.isFinite(edu.percentage))
+          (rowInvalid.percentage = true),
+            messages.push(
+              `Education #${idx + 1}: Percentage/CGPA is required.`
+            );
+        if (Object.keys(rowInvalid).length) {
+          nextInvalid.education = nextInvalid.education || {};
+          nextInvalid.education[idx] = {
+            ...(nextInvalid.education?.[idx] || {}),
+            ...rowInvalid,
+          };
+        }
+      });
+    }
+
+    if (activeTab === "experience") {
+      const checkExp = (
+        exp: Experience,
+        idx: number,
+        key: "itExperience" | "nonItExperience"
+      ) => {
+        const rowInvalid: Record<string, boolean> = {};
+        if (!String(exp.company || "").trim())
+          (rowInvalid.company = true),
+            messages.push(
+              `${key === "itExperience" ? "IT" : "Non-IT"} Experience #${
+                idx + 1
+              }: Company is required.`
+            );
+        if (!String(exp.role || "").trim())
+          (rowInvalid.role = true),
+            messages.push(
+              `${key === "itExperience" ? "IT" : "Non-IT"} Experience #${
+                idx + 1
+              }: Role is required.`
+            );
+        if (!String(exp.startDate || "").trim())
+          (rowInvalid.startDate = true),
+            messages.push(
+              `${key === "itExperience" ? "IT" : "Non-IT"} Experience #${
+                idx + 1
+              }: Start Date is required.`
+            );
+        if (Object.keys(rowInvalid).length) {
+          nextInvalid[key] = nextInvalid[key] || {};
+          nextInvalid[key][idx] = {
+            ...(nextInvalid[key]?.[idx] || {}),
+            ...rowInvalid,
+          };
+        }
+      };
+
+      formData.itExperience.forEach((exp, idx) =>
+        checkExp(exp, idx, "itExperience")
+      );
+      formData.nonItExperience.forEach((exp, idx) =>
+        checkExp(exp, idx, "nonItExperience")
+      );
+
+      formData.careerGaps.forEach((gap, idx) => {
+        const rowInvalid: Record<string, boolean> = {};
+        if (!String(gap.startDate || "").trim())
+          (rowInvalid.startDate = true),
+            messages.push(`Career Gap #${idx + 1}: Start Date is required.`);
+        if (!String(gap.endDate || "").trim())
+          (rowInvalid.endDate = true),
+            messages.push(`Career Gap #${idx + 1}: End Date is required.`);
+        if (!String(gap.reason || "").trim())
+          (rowInvalid.reason = true),
+            messages.push(`Career Gap #${idx + 1}: Reason is required.`);
+        if (Object.keys(rowInvalid).length) {
+          nextInvalid.careerGaps = nextInvalid.careerGaps || {};
+          nextInvalid.careerGaps[idx] = {
+            ...(nextInvalid.careerGaps?.[idx] || {}),
+            ...rowInvalid,
+          };
+        }
+      });
+    }
+
+    if (activeTab === "skills") {
+      formData.skills.forEach((skill, idx) => {
+        const rowInvalid: Record<string, boolean> = {};
+        if (!String(skill.name || "").trim())
+          (rowInvalid.name = true),
+            messages.push(`Skill #${idx + 1}: Skill Name is required.`);
+        if (Object.keys(rowInvalid).length) {
+          nextInvalid.skills = nextInvalid.skills || {};
+          nextInvalid.skills[idx] = {
+            ...(nextInvalid.skills?.[idx] || {}),
+            ...rowInvalid,
+          };
+        }
+      });
+    }
+
+    if (Object.keys(nextInvalid).length > 0) {
+      setInvalidFields((prev) => ({ ...prev, ...nextInvalid }));
+      setError("Please fix the errors in this step.");
+      setErrorList(
+        messages.length ? messages : ["Please fix the highlighted fields."]
+      );
+      // Toast for step validation error (keep current tab as per UX rule)
+      const desc = messages.length
+        ? `${messages[0]}${
+            messages.length > 1 ? ` (+${messages.length - 1} more)` : ""
+          }`
+        : "Please fix the highlighted fields.";
+      toast.error(desc);
+      return false;
+    }
+    return true;
+  }, [activeTab, formData, computeInvalidFields]);
+
+  const handleNextClick = useCallback(() => {
+    const ok = validateCurrentTab();
+    if (!ok) return; // keep current tab on failure
+    const idx = tabs.indexOf(activeTab);
+    if (idx < tabs.length - 1) {
+      // Move to next tab and clear any previous tab errors/highlights
+      setActiveTab(tabs[idx + 1]);
+      setInvalidFields({});
+      setError(null);
+      setErrorList([]);
+    }
+  }, [activeTab, tabs, validateCurrentTab]);
+
+  // Stable local max/min dates for DOB input
+  // max = today - 18 years (must be at least 18)
   const dobMax = useMemo(() => {
     const d = new Date();
-    // Normalize to local start of day to avoid timezone shifts
+    d.setFullYear(d.getFullYear() - 18);
     return d.toISOString().split("T")[0];
   }, []);
 
-  // Stable local min date for DOB = today - 100 years (sensible lower bound)
+  // min = today - 100 years (reasonable lower bound)
   const dobMin = useMemo(() => {
-    const today = new Date();
-    const minDate = new Date();
-    minDate.setFullYear(today.getFullYear() - 100);
-    const minDateString = minDate.toISOString().split("T")[0];
-
-    // Calculate date 18 years ago
-    const minAdultDate = new Date();
-    minAdultDate.setFullYear(today.getFullYear() - 18);
-    const minAdultDateString = minAdultDate.toISOString().split("T")[0];
-    return minAdultDateString;
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - 100);
+    return d.toISOString().split("T")[0];
   }, []);
 
   // Form field change handler with proper typing
@@ -213,8 +483,49 @@ const CandidateForm: React.FC = () => {
           [name]: value,
         };
       });
+
+      // Clear or set invalid flag live for core required fields
+      if (name === "name") {
+        const validNow = value.trim().length > 0;
+        setInvalidFields((prev) => ({ ...prev, name: !validNow }));
+      } else if (name === "email") {
+        const validNow = value.trim().length > 0 && emailRegex.test(value);
+        setInvalidFields((prev) => ({ ...prev, email: !validNow }));
+      } else if (name === "contactNumber") {
+        const validNow = value.trim().length > 0;
+        setInvalidFields((prev) => ({ ...prev, contactNumber: !validNow }));
+      } else if (name === "dateOfBirth") {
+        const validNow = isAdult(value);
+        setInvalidFields((prev) => ({ ...prev, dateOfBirth: !validNow }));
+      } else if (name === "alternateContactNumber") {
+        const validNow = value.trim().length > 0;
+        setInvalidFields((prev) => ({
+          ...prev,
+          alternateContactNumber: !validNow,
+        }));
+      } else if (name === "gender") {
+        const validNow = value.trim().length > 0;
+        setInvalidFields((prev) => ({ ...prev, gender: !validNow }));
+      } else if (name === "highestQualification") {
+        const validNow = value.trim().length > 0;
+        setInvalidFields((prev) => ({
+          ...prev,
+          highestQualification: !validNow,
+        }));
+      } else if (name === "previousSalary") {
+        const num = value === "" ? NaN : Number(value);
+        const validNow = Number.isFinite(num);
+        setInvalidFields((prev) => ({ ...prev, previousSalary: !validNow }));
+      } else if (name === "expectedSalary") {
+        const num = value === "" ? NaN : Number(value);
+        const validNow = Number.isFinite(num);
+        setInvalidFields((prev) => ({ ...prev, expectedSalary: !validNow }));
+      } else if (name === "notes") {
+        const validNow = value.trim().length > 0;
+        setInvalidFields((prev) => ({ ...prev, notes: !validNow }));
+      }
     },
-    []
+    [emailRegex, isAdult]
   );
 
   // File input change handler with proper typing
@@ -283,6 +594,33 @@ const CandidateForm: React.FC = () => {
       }
       updatedEducation[index] = current;
       return { ...prev, education: updatedEducation };
+    });
+
+    // Live clear invalid flags for this education row/field
+    setInvalidFields((prev: any) => {
+      const valid = (() => {
+        if (
+          field === "degree" ||
+          field === "institution" ||
+          field === "fieldOfStudy"
+        )
+          return String(value || "").trim().length > 0;
+        if (field === "yearOfPassing")
+          return Number.isFinite(
+            typeof value === "string" ? parseInt(value) : (value as number)
+          );
+        if (field === "percentage")
+          return Number.isFinite(
+            typeof value === "string" ? parseFloat(value) : (value as number)
+          );
+        return true;
+      })();
+      const next = { ...prev };
+      next.education = { ...(prev?.education || {}) };
+      const row = { ...(next.education[index] || {}) };
+      row[field as string] = !valid;
+      next.education[index] = row;
+      return next;
     });
   };
 
@@ -434,6 +772,9 @@ const CandidateForm: React.FC = () => {
               ? `Failed to load candidate data: ${err.message}`
               : "Failed to load candidate data. Please try again.";
           setError(errorMessage);
+          setErrorList([errorMessage]);
+          // Toast for fetch error
+          toast.error(errorMessage);
         } finally {
           setIsLoading(false);
         }
@@ -496,6 +837,10 @@ const CandidateForm: React.FC = () => {
             });
           } catch (error) {
             console.error(`Error uploading ${docType}:`, error);
+            // Toast for individual document upload error
+            const msg =
+              error instanceof Error ? error.message : "Unknown error";
+            toast.error(`Failed to upload ${docType}: ${msg}`);
             throw error;
           }
         });
@@ -505,6 +850,24 @@ const CandidateForm: React.FC = () => {
     [fileUploads]
   );
 
+  const getErrorMessage = (err: any): string => {
+    if (err?.response?.data?.message) return err.response.data.message;
+
+    if (Array.isArray(err?.response?.data?.errors)) {
+      const errorMessages = err.response.data.errors
+        .map((er: any) => er.msg)
+        .filter(Boolean)
+        .join(", ");
+
+      if (errorMessages) {
+        return `Failed to save candidate: ${errorMessages}`;
+      }
+    }
+
+    if (err?.message) return err.message;
+
+    return "An unexpected error occurred. Please try again.";
+  };
   // Form submission handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -512,12 +875,19 @@ const CandidateForm: React.FC = () => {
     const validationError = validateForm();
     if (validationError) {
       setError(validationError);
+      setErrorList([validationError]);
+      // Compute and mark invalid fields for red borders
+      setInvalidFields(computeInvalidFields(formData));
+      // Toast for submit validation error
+      toast.error(validationError);
       return;
     }
 
     setIsLoading(true);
     setError(null);
     setSuccess(null);
+    setErrorList([]);
+    setInvalidFields({});
 
     try {
       let savedCandidate;
@@ -532,24 +902,26 @@ const CandidateForm: React.FC = () => {
       }
 
       // Upload documents if there are any
-      if (Object.values(fileUploads).some((file) => file))
+      const hadFiles = Object.values(fileUploads).some((file) => file);
+      if (hadFiles) {
         await handleDocumentUploads(savedCandidate._id);
+        // Toast for document upload success
+        toast.success("All documents uploaded successfully.");
+      }
 
       setSuccess(`Candidate ${id ? "updated" : "created"} successfully!`);
+      // Toast for save success
+      toast.success(`Candidate ${id ? "updated" : "created"} successfully!`);
 
       // Redirect after a short delay
       setTimeout(() => navigate("/htd/candidates"), 1500);
     } catch (err: any) {
       console.error("Failed to save candidate:", err);
-      const errorMessage =
-        err?.message || err?.response?.data?.errors?.length > 0
-          ? `Failed to save candidate: ${
-              err.message
-            } - ${err?.response?.data?.errors
-              .map((er: any) => er.msg)
-              .join(", ")}`
-          : "An unexpected error occurred. Please try again.";
+      const errorMessage = getErrorMessage(err);
       setError(errorMessage);
+      setErrorList([errorMessage]);
+      // Toast for save error
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -600,6 +972,21 @@ const CandidateForm: React.FC = () => {
       };
       setFormData((prev) => ({ ...prev, nonItExperience: updatedExperience }));
     }
+
+    // Live clear invalid flags for this experience row/field
+    setInvalidFields((prev: any) => {
+      const valid =
+        field === "company" || field === "role" || field === "startDate"
+          ? String(value || "").trim().length > 0
+          : true;
+      const key = type === "IT" ? "itExperience" : "nonItExperience";
+      const next = { ...prev };
+      next[key] = { ...(prev?.[key] || {}) };
+      const row = { ...(next[key][index] || {}) };
+      row[field as string] = !valid;
+      next[key][index] = row;
+      return next;
+    });
   };
 
   const removeExperience = (type: "IT" | "NON_IT", index: number) => {
@@ -635,6 +1022,20 @@ const CandidateForm: React.FC = () => {
     const updatedGaps = [...formData.careerGaps];
     updatedGaps[index] = { ...updatedGaps[index], [field]: value };
     setFormData((prev) => ({ ...prev, careerGaps: updatedGaps }));
+
+    // Live clear invalid flags for this career gap row/field
+    setInvalidFields((prev: any) => {
+      const valid =
+        field === "startDate" || field === "endDate" || field === "reason"
+          ? String(value || "").trim().length > 0
+          : true;
+      const next = { ...prev };
+      next.careerGaps = { ...(prev?.careerGaps || {}) };
+      const row = { ...(next.careerGaps[index] || {}) };
+      row[field as string] = !valid;
+      next.careerGaps[index] = row;
+      return next;
+    });
   };
 
   const removeCareerGap = (index: number) => {
@@ -665,6 +1066,18 @@ const CandidateForm: React.FC = () => {
       [field]: value,
     };
     setFormData((prev) => ({ ...prev, skills: updatedSkills }));
+
+    // Live clear invalid flags for this skill row/field
+    setInvalidFields((prev: any) => {
+      const valid =
+        field === "name" ? String(value || "").trim().length > 0 : true;
+      const next = { ...prev };
+      next.skills = { ...(prev?.skills || {}) };
+      const row = { ...(next.skills[index] || {}) };
+      row[field as string] = !valid;
+      next.skills[index] = row;
+      return next;
+    });
   };
 
   const removeSkill = (index: number) => {
@@ -714,15 +1127,26 @@ const CandidateForm: React.FC = () => {
         </motion.p>
       </motion.div>
 
-      {error && (
+      {(errorList.length > 0 || error) && (
         <motion.div
-          className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded"
+          className="bg-red-50 border border-red-400 text-red-700 p-4 mb-6 rounded"
           initial={{ opacity: 0, x: -20, scale: 0.95 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: -20, scale: 0.95 }}
           transition={{ duration: 0.3 }}
+          role="alert"
+          aria-live="assertive"
         >
-          <p>{error}</p>
+          <div className="font-semibold mb-1">Please fix the following:</div>
+          <ul className="list-disc list-inside space-y-1">
+            {(errorList.length > 0 ? errorList : [error as string]).map(
+              (msg, idx) => (
+                <li key={idx} className="text-sm">
+                  {msg}
+                </li>
+              )
+            )}
+          </ul>
         </motion.div>
       )}
 
@@ -868,7 +1292,12 @@ const CandidateForm: React.FC = () => {
                           value={formData.name}
                           onChange={handleChange}
                           required
-                          className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                          aria-invalid={invalidFields.name ? "true" : "false"}
+                          className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 transition-all duration-200 ${
+                            invalidFields.name
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-gray-300 focus:ring-blue-500"
+                          }`}
                           whileFocus={{
                             scale: 1.02,
                             boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
@@ -889,7 +1318,12 @@ const CandidateForm: React.FC = () => {
                           value={formData.email}
                           onChange={handleChange}
                           required
-                          className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                          aria-invalid={invalidFields.email ? "true" : "false"}
+                          className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 transition-all duration-200 ${
+                            invalidFields.email
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-gray-300 focus:ring-blue-500"
+                          }`}
                           whileFocus={{
                             scale: 1.02,
                             boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)",
@@ -909,7 +1343,14 @@ const CandidateForm: React.FC = () => {
                           value={formData.contactNumber}
                           onChange={handleChange}
                           required
-                          className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          aria-invalid={
+                            invalidFields.contactNumber ? "true" : "false"
+                          }
+                          className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                            invalidFields.contactNumber
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-gray-300 focus:ring-blue-500"
+                          }`}
                         />
                       </div>
                       <div>
@@ -921,7 +1362,16 @@ const CandidateForm: React.FC = () => {
                           name="alternateContactNumber"
                           value={formData.alternateContactNumber || ""}
                           onChange={handleChange}
-                          className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          aria-invalid={
+                            invalidFields.alternateContactNumber
+                              ? "true"
+                              : "false"
+                          }
+                          className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                            invalidFields.alternateContactNumber
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-gray-300 focus:ring-blue-500"
+                          }`}
                         />
                       </div>
                       <div>
@@ -933,10 +1383,16 @@ const CandidateForm: React.FC = () => {
                           name="dateOfBirth"
                           value={formData.dateOfBirth}
                           onChange={handleChange}
-                          // min={dobMin}
-                          // Max date selectable is today minus 18 years (computed once in local time)
-                          // max={dobMax}
-                          className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          min={dobMin}
+                          max={dobMax}
+                          aria-invalid={
+                            invalidFields.dateOfBirth ? "true" : "false"
+                          }
+                          className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                            invalidFields.dateOfBirth
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-gray-300 focus:ring-blue-500"
+                          }`}
                         />
                       </div>
                       <div>
@@ -947,7 +1403,12 @@ const CandidateForm: React.FC = () => {
                           name="gender"
                           value={formData.gender}
                           onChange={handleChange}
-                          className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          aria-invalid={invalidFields.gender ? "true" : "false"}
+                          className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                            invalidFields.gender
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-gray-300 focus:ring-blue-500"
+                          }`}
                         >
                           <option value="">Select Gender</option>
                           <option value="male">Male</option>
@@ -1047,7 +1508,16 @@ const CandidateForm: React.FC = () => {
                           value={formData.highestQualification}
                           onChange={handleChange}
                           required
-                          className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          aria-invalid={
+                            invalidFields.highestQualification
+                              ? "true"
+                              : "false"
+                          }
+                          className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                            invalidFields.highestQualification
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-gray-300 focus:ring-blue-500"
+                          }`}
                         >
                           <option value="">Select Highest Qualification</option>
                           <optgroup label="School Education">
@@ -1095,7 +1565,14 @@ const CandidateForm: React.FC = () => {
                           name="previousSalary"
                           value={formData.previousSalary}
                           onChange={handleChange}
-                          className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          aria-invalid={
+                            invalidFields.previousSalary ? "true" : "false"
+                          }
+                          className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                            invalidFields.previousSalary
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-gray-300 focus:ring-blue-500"
+                          }`}
                         />
                       </div>
                       <div className="md:col-span-2 lg:col-span-1">
@@ -1110,7 +1587,14 @@ const CandidateForm: React.FC = () => {
                           name="expectedSalary"
                           value={formData.expectedSalary}
                           onChange={handleChange}
-                          className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          aria-invalid={
+                            invalidFields.expectedSalary ? "true" : "false"
+                          }
+                          className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                            invalidFields.expectedSalary
+                              ? "border-red-500 focus:ring-red-500"
+                              : "border-gray-300 focus:ring-blue-500"
+                          }`}
                         />
                       </div>
                     </div>
@@ -1131,7 +1615,12 @@ const CandidateForm: React.FC = () => {
                         value={formData.notes}
                         onChange={handleChange}
                         rows={4}
-                        className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        aria-invalid={invalidFields.notes ? "true" : "false"}
+                        className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                          invalidFields.notes
+                            ? "border-red-500 focus:ring-red-500"
+                            : "border-gray-300 focus:ring-blue-500"
+                        }`}
                         placeholder="Additional notes about the candidate..."
                       />
                     </div>
@@ -1199,7 +1688,14 @@ const CandidateForm: React.FC = () => {
                                   )
                                 }
                                 required
-                                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                aria-invalid={Boolean(
+                                  invalidFields.education?.[index]?.degree
+                                )}
+                                className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                                  invalidFields.education?.[index]?.degree
+                                    ? "border-red-500 focus:ring-red-500"
+                                    : "border-gray-300 focus:ring-blue-500"
+                                }`}
                               >
                                 <option value="">
                                   Select Degree/Certificate
@@ -1686,7 +2182,14 @@ const CandidateForm: React.FC = () => {
                                   )
                                 }
                                 required
-                                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                aria-invalid={Boolean(
+                                  invalidFields.education?.[index]?.institution
+                                )}
+                                className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                                  invalidFields.education?.[index]?.institution
+                                    ? "border-red-500 focus:ring-red-500"
+                                    : "border-gray-300 focus:ring-blue-500"
+                                }`}
                               />
                             </div>
                           </div>
@@ -1706,7 +2209,14 @@ const CandidateForm: React.FC = () => {
                                   )
                                 }
                                 required
-                                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                aria-invalid={Boolean(
+                                  invalidFields.education?.[index]?.fieldOfStudy
+                                )}
+                                className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                                  invalidFields.education?.[index]?.fieldOfStudy
+                                    ? "border-red-500 focus:ring-red-500"
+                                    : "border-gray-300 focus:ring-blue-500"
+                                }`}
                               >
                                 <option value="">Select Field of Study</option>
                                 <optgroup label="Engineering & Technology">
@@ -1782,7 +2292,16 @@ const CandidateForm: React.FC = () => {
                                   )
                                 }
                                 required
-                                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                aria-invalid={Boolean(
+                                  invalidFields.education?.[index]
+                                    ?.yearOfPassing
+                                )}
+                                className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                                  invalidFields.education?.[index]
+                                    ?.yearOfPassing
+                                    ? "border-red-500 focus:ring-red-500"
+                                    : "border-gray-300 focus:ring-blue-500"
+                                }`}
                               >
                                 <option value="">Select Year</option>
                                 {Array.from(
@@ -1819,7 +2338,14 @@ const CandidateForm: React.FC = () => {
                                 min="0"
                                 max="100"
                                 step="0.01"
-                                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                aria-invalid={Boolean(
+                                  invalidFields.education?.[index]?.percentage
+                                )}
+                                className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                                  invalidFields.education?.[index]?.percentage
+                                    ? "border-red-500 focus:ring-red-500"
+                                    : "border-gray-300 focus:ring-blue-500"
+                                }`}
                               />
                             </div>
                           </div>
@@ -1892,7 +2418,14 @@ const CandidateForm: React.FC = () => {
                                   )
                                 }
                                 required
-                                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                aria-invalid={Boolean(
+                                  invalidFields.itExperience?.[index]?.company
+                                )}
+                                className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                                  invalidFields.itExperience?.[index]?.company
+                                    ? "border-red-500 focus:ring-red-500"
+                                    : "border-gray-300 focus:ring-blue-500"
+                                }`}
                               />
                             </div>
                             <div>
@@ -1911,7 +2444,14 @@ const CandidateForm: React.FC = () => {
                                   )
                                 }
                                 required
-                                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                aria-invalid={Boolean(
+                                  invalidFields.itExperience?.[index]?.role
+                                )}
+                                className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                                  invalidFields.itExperience?.[index]?.role
+                                    ? "border-red-500 focus:ring-red-500"
+                                    : "border-gray-300 focus:ring-blue-500"
+                                }`}
                               />
                             </div>
                           </div>
@@ -1933,7 +2473,14 @@ const CandidateForm: React.FC = () => {
                                   )
                                 }
                                 required
-                                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                aria-invalid={Boolean(
+                                  invalidFields.itExperience?.[index]?.startDate
+                                )}
+                                className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                                  invalidFields.itExperience?.[index]?.startDate
+                                    ? "border-red-500 focus:ring-red-500"
+                                    : "border-gray-300 focus:ring-blue-500"
+                                }`}
                               />
                             </div>
                             <div>
@@ -2031,7 +2578,16 @@ const CandidateForm: React.FC = () => {
                                   )
                                 }
                                 required
-                                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                aria-invalid={Boolean(
+                                  invalidFields.nonItExperience?.[index]
+                                    ?.company
+                                )}
+                                className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                                  invalidFields.nonItExperience?.[index]
+                                    ?.company
+                                    ? "border-red-500 focus:ring-red-500"
+                                    : "border-gray-300 focus:ring-blue-500"
+                                }`}
                               />
                             </div>
                             <div>
@@ -2050,7 +2606,14 @@ const CandidateForm: React.FC = () => {
                                   )
                                 }
                                 required
-                                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                aria-invalid={Boolean(
+                                  invalidFields.nonItExperience?.[index]?.role
+                                )}
+                                className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                                  invalidFields.nonItExperience?.[index]?.role
+                                    ? "border-red-500 focus:ring-red-500"
+                                    : "border-gray-300 focus:ring-blue-500"
+                                }`}
                               />
                             </div>
                           </div>
@@ -2072,7 +2635,16 @@ const CandidateForm: React.FC = () => {
                                   )
                                 }
                                 required
-                                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                aria-invalid={Boolean(
+                                  invalidFields.nonItExperience?.[index]
+                                    ?.startDate
+                                )}
+                                className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                                  invalidFields.nonItExperience?.[index]
+                                    ?.startDate
+                                    ? "border-red-500 focus:ring-red-500"
+                                    : "border-gray-300 focus:ring-blue-500"
+                                }`}
                               />
                             </div>
                             <div>
@@ -2169,7 +2741,14 @@ const CandidateForm: React.FC = () => {
                                   )
                                 }
                                 required
-                                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                aria-invalid={Boolean(
+                                  invalidFields.careerGaps?.[index]?.startDate
+                                )}
+                                className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                                  invalidFields.careerGaps?.[index]?.startDate
+                                    ? "border-red-500 focus:ring-red-500"
+                                    : "border-gray-300 focus:ring-blue-500"
+                                }`}
                               />
                             </div>
                             <div>
@@ -2187,7 +2766,14 @@ const CandidateForm: React.FC = () => {
                                   )
                                 }
                                 required
-                                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                aria-invalid={Boolean(
+                                  invalidFields.careerGaps?.[index]?.endDate
+                                )}
+                                className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                                  invalidFields.careerGaps?.[index]?.endDate
+                                    ? "border-red-500 focus:ring-red-500"
+                                    : "border-gray-300 focus:ring-blue-500"
+                                }`}
                               />
                             </div>
                           </div>
@@ -2202,8 +2788,15 @@ const CandidateForm: React.FC = () => {
                                 updateCareerGap(index, "reason", e.target.value)
                               }
                               required
+                              aria-invalid={Boolean(
+                                invalidFields.careerGaps?.[index]?.reason
+                              )}
                               rows={2}
-                              className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                                invalidFields.careerGaps?.[index]?.reason
+                                  ? "border-red-500 focus:ring-red-500"
+                                  : "border-gray-300 focus:ring-blue-500"
+                              }`}
                             />
                           </div>
                         </div>
@@ -2269,7 +2862,14 @@ const CandidateForm: React.FC = () => {
                                   updateSkill(index, "name", e.target.value)
                                 }
                                 required
-                                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                aria-invalid={Boolean(
+                                  invalidFields.skills?.[index]?.name
+                                )}
+                                className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 ${
+                                  invalidFields.skills?.[index]?.name
+                                    ? "border-red-500 focus:ring-red-500"
+                                    : "border-gray-300 focus:ring-blue-500"
+                                }`}
                               />
                             </div>
 
@@ -2624,45 +3224,76 @@ const CandidateForm: React.FC = () => {
             )}
           </AnimatePresence>
 
-          <div className="mt-8 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => navigate("/htd/candidates")}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded-md transition duration-300 ease-in-out w-full sm:w-auto"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={`bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md transition duration-300 ease-in-out flex items-center w-full sm:w-auto ${
-                isLoading ? "opacity-70 cursor-not-allowed" : ""
-              }`}
-            >
-              {isLoading && (
-                <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
+          <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            {/* Left-side Back button for step-back functionality */}
+            <div className="flex-1">
+              <button
+                type="button"
+                onClick={goToPrevTab}
+                disabled={isFirstTab}
+                className={`py-2 px-4 rounded-md w-full sm:w-auto border transition ${
+                  isFirstTab
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
+                }`}
+              >
+                Back
+              </button>
+            </div>
+
+            {/* Right-side controls: Next on intermediate tabs; Cancel + Submit only on last tab */}
+            <div className="flex flex-col-reverse sm:flex-row gap-3 justify-end">
+              {!isLastTab ? (
+                <button
+                  type="button"
+                  onClick={handleNextClick}
+                  className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md transition duration-300 ease-in-out w-full sm:w-auto"
                 >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
+                  Next
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/htd/candidates")}
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded-md transition duration-300 ease-in-out w-full sm:w-auto"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className={`bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md transition duration-300 ease-in-out flex items-center w-full sm:w-auto ${
+                      isLoading ? "opacity-70 cursor-not-allowed" : ""
+                    }`}
+                  >
+                    {isLoading && (
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                    )}
+                    {id ? "Update Candidate" : "Create Candidate"}
+                  </button>
+                </>
               )}
-              {id ? "Update Candidate" : "Create Candidate"}
-            </button>
+            </div>
           </div>
         </motion.form>
       </motion.div>

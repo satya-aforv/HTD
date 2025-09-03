@@ -11,7 +11,7 @@ import {
   FaEye,
 } from "react-icons/fa";
 import { toast } from "react-hot-toast";
-import { htdAPI, Payment, Candidate } from "../../../services/htdAPI";
+import { htdAPI, Payment } from "../../../services/htdAPI";
 import { getErrorMessage } from "../../../lib/utils";
 import { getStatusBadge } from "../../Common/StatusBadge";
 
@@ -77,26 +77,6 @@ const PaymentsList: React.FC = () => {
         return "bg-gray-100 text-gray-800";
     }
   }, []);
-
-  // Get candidate name safely
-  const getCandidateName = useCallback(
-    (candidateId: Candidate | string): string => {
-      if (!candidateId) return "N/A";
-      if (typeof candidateId === "string") return "Unknown Candidate";
-      return candidateId.name || "N/A";
-    },
-    []
-  );
-
-  // Get candidate email safely
-  const getCandidateEmail = useCallback(
-    (candidateId: Candidate | string): string => {
-      if (!candidateId) return "";
-      if (typeof candidateId === "string") return "";
-      return candidateId.email || "";
-    },
-    []
-  );
 
   const fetchPayments = useCallback(async (): Promise<void> => {
     try {
@@ -584,11 +564,11 @@ const PaymentsList: React.FC = () => {
                   <tr key={payment._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        {getCandidateName(payment?.candidateId)}
+                        {payment?.candidate?.name || "N/A"}
                       </div>
-                      {getCandidateEmail(payment?.candidateId) && (
+                      {payment?.candidate?.email && (
                         <div className="text-sm text-gray-500">
-                          {getCandidateEmail(payment?.candidateId)}
+                          {payment?.candidate?.email}
                         </div>
                       )}
                     </td>
@@ -598,7 +578,7 @@ const PaymentsList: React.FC = () => {
                           payment?.type
                         )}`}
                       >
-                        {payment?.type || "Unknown"}
+                        {payment?.type.toLocaleUpperCase() || "Unknown"}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -611,7 +591,9 @@ const PaymentsList: React.FC = () => {
                       {formatDate(payment?.paymentDate)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(payment?.status || "Unknown")}
+                      {getStatusBadge(
+                        payment?.status?.toLocaleUpperCase() || "Unknown"
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">

@@ -32,6 +32,7 @@ export interface Module {
 export interface Training {
   _id: string;
   title: string;
+  trainingId: string;
   status:
     | "ongoing"
     | "completed"
@@ -93,6 +94,13 @@ export interface Payment {
   description?: string;
   createdAt: string;
   updatedAt: string;
+  candidate?: {
+    _id?: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+    photo?: string;
+  };
 }
 
 // Dashboard stats

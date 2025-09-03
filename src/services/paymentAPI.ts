@@ -1,4 +1,4 @@
-import axios from './baseAPI';
+import axios from "./baseAPI";
 
 export interface PaymentFormData {
   _id?: string;
@@ -19,6 +19,7 @@ export interface PaymentFormData {
   proofUrl?: string;
   processor?: string;
   relatedTraining?: string;
+  trainingId?: string;
   month: string;
   year: number;
 }
@@ -65,25 +66,31 @@ export const paymentAPI = {
 
   generateReceipt: async (id: string): Promise<Blob> => {
     const response = await axios.get(`/htd/payments/${id}/receipt`, {
-      responseType: 'blob',
+      responseType: "blob",
     });
     return response.data;
   },
 
   createPayment: async (data: PaymentFormData): Promise<Payment> => {
-    const response = await axios.post('/htd/payments', data);
+    const response = await axios.post("/htd/payments", data);
     return response.data;
   },
 
-  updatePayment: async (id: string, data: PaymentFormData): Promise<Payment> => {
+  updatePayment: async (
+    id: string,
+    data: PaymentFormData
+  ): Promise<Payment> => {
     const response = await axios.put(`/htd/payments/${id}`, data);
     return response.data;
   },
 
-  uploadProof: async (id: string, formData: FormData): Promise<{ proofUrl: string }> => {
+  uploadProof: async (
+    id: string,
+    formData: FormData
+  ): Promise<{ proofUrl: string }> => {
     const response = await axios.post(`/htd/payments/${id}/proof`, formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     });
     return response.data;
